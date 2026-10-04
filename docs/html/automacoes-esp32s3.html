@@ -1,0 +1,692 @@
+<title>Automações ESP32-S3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: caderno técnico de campo — trilho de índice à esquerda (desktop), coluna de leitura ~74ch, figuras e tabelas podem alargar */
+:root{
+  --bg:#f2f4f3; --surface:#ffffff; --surface-2:#e7ecea; --ink:#13201e; --ink-2:#465755; --muted:#6f7e7b; --line:#cdd6d3;
+  --accent:#0b6b6a; --accent-soft:#d5ebe9; --hot:#b94a14; --hot-soft:#f8e3d6; --series:#2a78d6; --series-soft:#cde2fb;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1514; --surface:#151f1e; --surface-2:#1c2928; --ink:#e6eeec; --ink-2:#a8b7b4; --muted:#83928f; --line:#2b3a38;
+  --accent:#43b6b0; --accent-soft:#163533; --hot:#f07c43; --hot-soft:#3a2216; --series:#3987e5; --series-soft:#17304f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1514; --surface:#151f1e; --surface-2:#1c2928; --ink:#e6eeec; --ink-2:#a8b7b4; --muted:#83928f; --line:#2b3a38;
+  --accent:#43b6b0; --accent-soft:#163533; --hot:#f07c43; --hot-soft:#3a2216; --series:#3987e5; --series-soft:#17304f; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;margin:0}
+.wrap{display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;max-width:1240px;margin:0 auto;padding-inline:24px;padding-block:28px 64px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:16px;padding-inline:16px}}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 20px);align-self:start;font-size:14px;max-height:calc(100vh - 40px);overflow:auto}
+nav.toc .brand{font-family:var(--f-display);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:13px;color:var(--accent);margin-bottom:10px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:t}
+nav.toc a{display:block;padding:5px 10px;border-left:2px solid var(--line);color:var(--ink-2);text-decoration:none}
+nav.toc a:hover,nav.toc a:focus-visible{border-left-color:var(--accent);color:var(--ink);background:var(--surface-2)}
+nav.toc .other{margin-top:16px;padding:10px;border:1px solid var(--line);border-radius:var(--r);font-size:13px;color:var(--ink-2)}
+nav.toc .other a{border:0;padding:0;color:var(--accent);display:inline;text-decoration:underline}
+@media (max-width:900px){nav.toc{position:static;max-height:none}nav.toc ol{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
+main{min-width:0}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.hero{padding-block:8px 28px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.eyebrow{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.12em;font-size:13px;color:var(--accent);font-weight:600}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,5vw,52px);line-height:1.02;margin:6px 0 12px;text-wrap:balance;letter-spacing:-.005em}
+h2{font-family:var(--f-display);font-weight:650;font-size:30px;line-height:1.1;margin:0 0 14px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:600;font-size:21px;margin:26px 0 8px;letter-spacing:.01em}
+.lede{font-size:18px;color:var(--ink-2);max-width:72ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:16px;font-size:13px;color:var(--muted);font-family:var(--f-mono)}
+section{padding-block:30px;border-bottom:1px solid var(--line);scroll-margin-top:16px}
+section > p, .prose{max-width:74ch}
+.sec-num{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.06em;display:block;margin-bottom:4px}
+
+/* chips & tags */
+.tag{display:inline-block;font-family:var(--f-mono);font-size:11.5px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);background:var(--surface);white-space:nowrap;vertical-align:1px}
+.tag.h{border-color:var(--hot);color:var(--hot);background:var(--hot-soft)}
+.tag.a{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.tag.s{border-style:dashed}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;white-space:nowrap}
+.st::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+.st.good::before{background:var(--good)} .st.warn::before{background:var(--warn)} .st.serious::before{background:var(--serious)} .st.crit::before{background:var(--crit)}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:22px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.kpi b{display:block;font-family:var(--f-display);font-size:34px;line-height:1;font-weight:650;font-variant-numeric:tabular-nums}
+.kpi span{display:block;font-size:13.5px;color:var(--ink-2);margin-top:6px}
+
+/* callouts */
+.decision{background:var(--surface);border:1px solid var(--accent);border-radius:var(--r);padding:18px 20px;margin-block:18px}
+.decision h3{margin-top:0;color:var(--accent)}
+.note{border-left:3px solid var(--hot);background:var(--hot-soft);padding:10px 14px;border-radius:0 var(--r) var(--r) 0;margin-block:14px;max-width:80ch;font-size:15px}
+.note.info{border-left-color:var(--accent);background:var(--accent-soft)}
+ul.tight{margin:6px 0;padding-left:20px} ul.tight li{margin:3px 0}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;min-width:0}
+.card h4{font-family:var(--f-display);font-size:18px;margin:0 0 6px;font-weight:600}
+.card p{margin:4px 0;font-size:15px}
+
+/* tables */
+.tw{overflow-x:auto;margin-block:14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font-family:var(--f-display);font-weight:600;font-size:14px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-2);background:var(--surface-2);position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.rec td{background:var(--hot-soft)}
+code,kbd{font-family:var(--f-mono);font-size:.86em;background:var(--surface-2);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+pre{font-family:var(--f-mono);font-size:13px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;overflow-x:auto;line-height:1.45;margin-block:12px}
+pre code{background:none;padding:0;overflow-wrap:normal}
+
+/* figures */
+figure{margin:20px 0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+figure .scroll{overflow-x:auto}
+figure svg{display:block;width:100%;height:auto;min-width:560px;color:var(--ink)}
+figure.small svg{min-width:0}
+figcaption{font-size:14px;color:var(--ink-2);margin-top:10px;max-width:80ch}
+figcaption b{color:var(--ink)}
+/* svg classes */
+.d-box{fill:var(--surface);stroke:var(--ink-2);stroke-width:1.4}
+.d-box2{fill:var(--surface-2);stroke:var(--line);stroke-width:1.2}
+.d-acc{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.6}
+.d-hot{fill:var(--hot-soft);stroke:var(--hot);stroke-width:1.8}
+.d-ser{fill:var(--series-soft);stroke:var(--series);stroke-width:1.4}
+.d-line{stroke:var(--ink-2);stroke-width:1.5;fill:none}
+.d-line.acc{stroke:var(--accent);stroke-width:2}
+.d-line.hot{stroke:var(--hot);stroke-width:2.2}
+.d-line.ser{stroke:var(--series);stroke-width:2}
+.d-line.dash{stroke-dasharray:5 4}
+.d-line.x{stroke:var(--crit);stroke-width:2.4}
+.d-t{fill:var(--ink);font-family:var(--f-body);font-size:13px}
+.d-t.b{font-weight:700}
+.d-t.s{font-size:11.5px;fill:var(--ink-2)}
+.d-t.m{font-family:var(--f-mono);font-size:11px;fill:var(--ink-2)}
+.d-t.h{fill:var(--hot);font-weight:700}
+.d-t.a{fill:var(--accent);font-weight:700}
+.d-t.x{fill:var(--crit);font-weight:700}
+.d-t.ttl{font-family:var(--f-display);font-size:16px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;fill:var(--ink-2)}
+.d-mk{fill:var(--ink-2)} .d-mk.acc{fill:var(--accent)} .d-mk.hot{fill:var(--hot)} .d-mk.ser{fill:var(--series)}
+.d-grid{stroke:var(--line);stroke-width:1}
+.d-bar{fill:var(--series)}
+.d-bar:hover,.d-bar:focus{fill:var(--accent);outline:none}
+
+/* tooltip */
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--ink);color:var(--bg);font-size:13px;line-height:1.35;padding:7px 10px;border-radius:5px;max-width:280px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+
+/* steps / timeline */
+.steps{display:grid;gap:10px;counter-reset:s;margin:14px 0}
+.step{display:grid;grid-template-columns:54px minmax(0,1fr);gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.step .n{font-family:var(--f-display);font-size:26px;font-weight:700;color:var(--accent);line-height:1}
+.step .n small{display:block;font-family:var(--f-mono);font-size:10.5px;color:var(--muted);font-weight:400;letter-spacing:.04em;margin-top:4px}
+.step h4{margin:0 0 4px;font-family:var(--f-display);font-size:19px;font-weight:600}
+.step p{margin:3px 0;font-size:15px}
+.step .tests{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px}
+
+/* filter bar */
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0 4px}
+.filters span{font-size:13px;color:var(--muted);margin-right:4px}
+.fbtn{font:inherit;font-size:14px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer}
+.fbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.fbtn:hover{border-color:var(--accent)}
+
+/* sources */
+ol.src{padding-left:0;list-style:none;display:grid;gap:8px;font-size:14px}
+ol.src li{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px 12px;overflow-wrap:anywhere}
+ol.src b{font-family:var(--f-mono);color:var(--accent);margin-right:6px}
+.legend{display:flex;flex-wrap:wrap;gap:10px 18px;font-size:13px;color:var(--ink-2);margin:8px 0}
+.legend i{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+footer{padding-block:28px;color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+html{scroll-behavior:smooth}
+
+.cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:12px}
+.ac{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.ac.top{border-color:var(--hot)}
+.ac .hd{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.ac .id{font-family:var(--f-mono);font-weight:600;font-size:13px;color:var(--accent)}
+.ac h4{margin:0;font-family:var(--f-display);font-size:18.5px;font-weight:600;line-height:1.15}
+.ac p{margin:0;font-size:14.5px;color:var(--ink-2)}
+.ac .ft{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:auto;padding-top:6px;border-top:1px dashed var(--line)}
+.count{font-size:13px;color:var(--muted);margin-left:auto}
+.mock{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:760px){.mock{grid-template-columns:minmax(0,1fr)}}
+.phone{border:2px solid var(--ink-2);border-radius:28px;padding:16px 14px 18px;background:var(--bg);max-width:320px}
+.phone .bar{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-bottom:10px}
+.phone h5{font-family:var(--f-display);font-size:19px;margin:0 0 2px;font-weight:600}
+.phone .sub{font-size:12px;color:var(--muted);margin-bottom:10px}
+.prog{height:10px;border-radius:5px;background:var(--surface-2);position:relative;overflow:hidden;margin:6px 0 2px}
+.prog i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:5px}
+.prog b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--hot)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.tile small{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tile strong{font-family:var(--f-display);font-size:22px;font-variant-numeric:tabular-nums}
+.phone .btns{display:flex;gap:8px;margin-top:12px}
+.phone .btns span{flex:1;text-align:center;padding:8px;border-radius:8px;border:1px solid var(--accent);color:var(--accent);font-weight:600;font-size:14px}
+.phone .btns span.p{background:var(--accent);color:var(--surface)}
+.ex{font-family:var(--f-mono);font-size:10.5px;color:var(--hot);text-transform:uppercase;letter-spacing:.08em}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Índice">
+  <div class="brand">LuftPlan · Base RTK</div>
+  <ol>
+    <li><a href="#resumo">Resumo</a></li>
+    <li><a href="#perguntas">Perguntas adicionais</a></li>
+    <li><a href="#catalogo">Catálogo de automações</a></li>
+    <li><a href="#painel">Sessão e painel</a></li>
+    <li><a href="#marco">Reconhecimento de marco</a></li>
+    <li><a href="#conexoes">Conexões</a></li>
+    <li><a href="#escritorio">Escritório</a></li>
+    <li><a href="#firmware">Firmware</a></li>
+    <li><a href="#ciclo">Ciclo ponta a ponta</a></li>
+    <li><a href="#formatos">Formatos de arquivo</a></li>
+    <li><a href="#roteiro">Roteiro</a></li>
+    <li><a href="#testes">Testes</a></li>
+    <li><a href="#riscos">Riscos</a></li>
+    <li><a href="#fontes">Fontes</a></li>
+  </ol>
+  <div class="other">Complementa o <a href="https://claude.ai/artifact/FRjRDAAvbiKpeaEz9ywmFz">Plano de Gravação RAW</a></div>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Campo e escritório · sobre a arquitetura A1</div>
+  <h1>Automações com o ESP32-S3</h1>
+  <p class="lede">O S3 deixa de ser só gravador e vira o assistente de campo da base: registra a sessão pelo celular, avisa quando algo dá errado, reconhece marcos já medidos e entrega os dados prontos para um pipeline que devolve coordenadas SIRGAS2000 sem intervenção.</p>
+  <div class="meta"><span>v1.0 · 2026-10-04</span><span>Premissa: S3 na UART1, ponte BT intocada na UART2</span><span>Nada grava em Flash/BBR do receptor</span></div>
+  <div class="kpis">
+    <div class="kpi"><b>21</b><span>automações catalogadas (13 campo · 8 escritório)</span></div>
+    <div class="kpi"><b>6</b><span>modos de conexão além do Bluetooth atual</span></div>
+    <div class="kpi"><b>2 APIs</b><span>IBGE-PPP e RBMC para o pipeline automático</span></div>
+    <div class="kpi"><b>1</b><span>regra de ouro: uma fonte de RTCM por vez</span></div>
+  </div>
+</header>
+
+<section id="resumo">
+  <span class="sec-num">01</span>
+  <h2>Resumo: o que vale fazer primeiro</h2>
+  <div class="steps">
+    <div class="step"><div class="n">1<small>F2</small></div><div><h4>Sessão de ocupação pelo celular</h4><p>Portal cativo no Wi-Fi do S3 recebe ponto, altura medida duas vezes, antena e operador, e grava <code>session.json</code> ao lado do UBX. Elimina a ficha em papel e alimenta o <code>convbin</code> no escritório.</p></div></div>
+    <div class="step"><div class="n">2<small>F5</small></div><div><h4>Painel de saúde com alarmes</h4><p>Tempo ocupado contra as metas de PPP (2,5 h / 4 h), satélites, lacunas, antena e jamming (<code>UBX-MON-RF</code>), SD e bateria.</p></div></div>
+    <div class="step"><div class="n">3<small>O1 · O2</small></div><div><h4>Descarga automática</h4><p>Por cabo, o S3 vira pendrive (TinyUSB MSC) [G1]. Pelo Wi-Fi do escritório, um script baixa os arquivos novos com verificação SHA-256 [G2, G3].</p></div></div>
+    <div class="step"><div class="n">4<small>O3 · O4</small></div><div><h4>Pipeline sem intervenção</h4><p>UBX → RINEX → API do IBGE-PPP [G5] → SIRGAS2000 → banco de sítios. Em paralelo, PPK com download automático pela API RBMC [G6].</p></div></div>
+    <div class="step"><div class="n">5<small>F3</small></div><div><h4>Ciclo fechado</h4><p>As coordenadas PPP voltam ao S3 (<code>sites.csv</code>). Na próxima visita a base reconhece o marco e se configura em modo fixo, sempre com confirmação humana.</p></div></div>
+    <div class="step"><div class="n">6<small>F7 · F11</small></div><div><h4>Conexões alternativas ao Bluetooth</h4><p>S3 como cliente NTRIP via hotspot do celular e NMEA por TCP ao SW Maps ("NMEA over IP" no Android e iOS [G7] <span class="tag s">trecho de busca</span>). Exige a regra de uma única fonte de RTCM.</p></div></div>
+  </div>
+</section>
+
+<section id="perguntas">
+  <span class="sec-num">02</span>
+  <h2>Perguntas adicionais</h2>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Pergunta</th><th>Por que importa</th><th>Suposição</th></tr></thead>
+    <tbody>
+      <tr><td>Q13</td><td>Modelos dos celulares e hotspot em 2,4 GHz?</td><td>O S3 só opera em 2,4 GHz; o hotspot do iOS vem em 5 GHz por padrão [G9].</td><td>Ambos fazem hotspot de 2,4 GHz</td></tr>
+      <tr><td>Q14</td><td>Wi-Fi do escritório (WPA2-PSK ou 802.1X)? NAS ou servidor?</td><td>Descarga e OTA</td><td>WPA2-PSK; PC ou NAS sempre ligado</td></tr>
+      <tr><td>Q15</td><td>O pino EXTINT do ZED está acessível?</td><td>Eventos com tempo GNSS (<code>TIM-TM2</code>). No Pro está no JST [G10]; no Budget <span class="tag">não verificado</span>.</td><td>Não acessível; marcações pelo S3 (ms)</td></tr>
+      <tr><td>Q16</td><td>Quantas bases/dispositivos?</td><td>Nomes únicos, mDNS, frota</td><td>1 hoje, até 3 no futuro</td></tr>
+      <tr><td>Q17</td><td>Há internet (hotspot) na maioria das obras?</td><td>Viabiliza F7/F8</td><td>Na maioria sim</td></tr>
+      <tr><td>Q18</td><td>Aceita o S3 injetar RTCM no receptor (UART1)?</td><td>Risco de duas fontes de RTCM</td><td>Sim, com chave de modo exclusivo</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="catalogo">
+  <span class="sec-num">03</span>
+  <h2>Catálogo de automações</h2>
+  <p>Esforço: <span class="tag">P</span> ≤ 2 dias · <span class="tag">M</span> ≤ 1 semana · <span class="tag">G</span> &gt; 1 semana, para quem domina ESP-IDF <span class="tag h">HIPÓTESE</span>. Risco = chance de afetar a medição. Borda laranja = prioridade do resumo.</p>
+  <div class="filters" role="group" aria-label="Filtrar automações">
+    <span>Local</span>
+    <button class="fbtn" data-f="all" aria-pressed="true" id="f-all">Todas</button>
+    <button class="fbtn" data-f="campo" aria-pressed="false" id="f-campo">Campo</button>
+    <button class="fbtn" data-f="escritorio" aria-pressed="false" id="f-esc">Escritório</button>
+    <button class="fbtn" data-f="medio" aria-pressed="false" id="f-risk">Risco médio</button>
+    <span class="count" id="count">21 de 21</span>
+  </div>
+  <div class="cat" id="cat">
+    <article class="ac" data-l="campo" data-r="baixo"><div class="hd"><span class="id">F1</span><h4>Gravação automática ao ligar</h4></div><p>Nome por tempo GNSS e rotação horária.</p><div class="ft"><span class="tag">Campo</span><span class="tag">já no v1</span><span class="st good">Risco baixo</span><span class="tag">T07–T11</span></div></article>
+    <article class="ac top" data-l="campo" data-r="baixo"><div class="hd"><span class="id">F2</span><h4>Sessão de ocupação pelo celular</h4></div><p>Portal cativo + formulário → <code>session.json</code>. Base: exemplos <code>captive_portal</code> e <code>file_serving</code> [G2].</p><div class="ft"><span class="tag">Campo</span><span class="tag">M</span><span class="st good">Risco baixo</span><span class="tag">A01 A02</span></div></article>
+    <article class="ac top" data-l="campo" data-r="medio"><div class="hd"><span class="id">F3</span><h4>Reconhecimento de marco + modo base</h4></div><p><code>sites.csv</code> → TMODE FIXED em RAM, com confirmação. <code>CFG-TMODE-*</code> [F2]; <code>Example12_setStaticPosition</code> [G8].</p><div class="ft"><span class="tag">Campo</span><span class="tag">M</span><span class="st warn">Risco médio</span><span class="tag">A03 A04</span></div></article>
+    <article class="ac" data-l="campo" data-r="medio"><div class="hd"><span class="id">F4</span><h4>Perfis de configuração</h4></div><p><code>/profiles/*.cfg</code> → VALSET em RAM + verificação por VALGET [F2, G8].</p><div class="ft"><span class="tag">Campo</span><span class="tag">P</span><span class="st warn">Risco médio</span><span class="tag">A05</span></div></article>
+    <article class="ac top" data-l="campo" data-r="baixo"><div class="hd"><span class="id">F5</span><h4>Painel de saúde e alarmes</h4></div><p>LED, buzzer e web. <code>UBX-MON-RF</code> (antena, jamming) [F2 §3.10, §3.14.2], <code>NAV-PVT</code>, contadores.</p><div class="ft"><span class="tag">Campo</span><span class="tag">P–M</span><span class="st good">Risco baixo</span><span class="tag">A06</span></div></article>
+    <article class="ac" data-l="campo" data-r="baixo"><div class="hd"><span class="id">F6</span><h4>Marcadores de evento</h4></div><p>Botão → CSV; ou EXTINT → <code>UBX-TIM-TM2</code> → evento (flag 5) no RINEX [F2 §3.13.2, F1].</p><div class="ft"><span class="tag">Campo</span><span class="tag">P</span><span class="st good">Risco baixo</span><span class="tag">A07</span></div></article>
+    <article class="ac top" data-l="campo" data-r="medio"><div class="hd"><span class="id">F7</span><h4>Cliente NTRIP no S3</h4></div><p>Via hotspot (RBMC-IP), GGA, failover e estação mais próxima. Exemplos NTRIPClient [G8]; <code>ntrip_client.c</code> [F9].</p><div class="ft"><span class="tag">Campo</span><span class="tag">M</span><span class="st warn">Risco médio</span><span class="tag">A08 A09</span></div></article>
+    <article class="ac" data-l="campo" data-r="baixo"><div class="hd"><span class="id">F8</span><h4>Servidor NTRIP no S3</h4></div><p>Base → caster na internet. <code>Example14_NTRIPServer</code> [G8]; <code>str2str ntrips:// ntripc://</code> [F1].</p><div class="ft"><span class="tag">Campo</span><span class="tag">M</span><span class="st good">Risco baixo</span><span class="tag">A10</span></div></article>
+    <article class="ac" data-l="campo" data-r="baixo"><div class="hd"><span class="id">F9</span><h4>Caster local no softAP</h4></div><p>Rovers sem internet; Fase 7 do v1; <code>ntrip_caster.c</code> [F9].</p><div class="ft"><span class="tag">Campo</span><span class="tag">M</span><span class="st good">Risco baixo</span><span class="tag">T21</span></div></article>
+    <article class="ac" data-l="campo" data-r="baixo"><div class="hd"><span class="id">F10</span><h4>RTCM base→rover por ESP-NOW</h4></div><p>Exige 2º ESP32 no rover. Pacotes 250/1470 B, CCMP [G4]; ~250 m em visada direta [G11].</p><div class="ft"><span class="tag">Campo</span><span class="tag">M</span><span class="st good">Risco baixo</span><span class="tag">A11</span></div></article>
+    <article class="ac top" data-l="campo" data-r="baixo"><div class="hd"><span class="id">F11</span><h4>NMEA por TCP para o SW Maps</h4></div><p>Sem Bluetooth. "NMEA over IP" [G7] <span class="tag s">trecho de busca</span>; SparkFun usa a porta 2948 [G9].</p><div class="ft"><span class="tag">Campo</span><span class="tag">P</span><span class="st good">Risco baixo</span><span class="tag">A12</span></div></article>
+    <article class="ac" data-l="campo" data-r="baixo"><div class="hd"><span class="id">F12</span><h4>Hora GNSS na rede local</h4></div><p>NTP no softAP; PPS opcional. <code>settimeofday()</code> [G12]; servidor NTP é código próprio <span class="tag h">HIPÓTESE</span>.</p><div class="ft"><span class="tag">Campo</span><span class="tag">M</span><span class="st good">Risco baixo</span><span class="tag">A13</span></div></article>
+    <article class="ac" data-l="campo" data-r="baixo"><div class="hd"><span class="id">F13</span><h4>Proteção de energia</h4></div><p>Vin baixo → fecha arquivo e avisa (ADC + supervisor).</p><div class="ft"><span class="tag">Campo</span><span class="tag">P</span><span class="st good">Risco baixo</span><span class="tag">T08</span></div></article>
+    <article class="ac top" data-l="escritorio" data-r="baixo"><div class="hd"><span class="id">O1</span><h4>S3 como pendrive USB</h4></div><p>SD exposto por MSC; PC e firmware não acessam ao mesmo tempo [G1]; S3 tem USB OTG [F8].</p><div class="ft"><span class="tag">Escritório</span><span class="tag">P–M</span><span class="st good">Risco baixo</span><span class="tag">A14</span></div></article>
+    <article class="ac top" data-l="escritorio" data-r="baixo"><div class="hd"><span class="id">O2</span><h4>Descarga por Wi-Fi do escritório</h4></div><p>mDNS + manifest SHA-256 [G3]; SHA em hardware [F8]; modo APSTA [G12].</p><div class="ft"><span class="tag">Escritório</span><span class="tag">M</span><span class="st good">Risco baixo</span><span class="tag">A15</span></div></article>
+    <article class="ac top" data-l="escritorio" data-r="baixo"><div class="hd"><span class="id">O3</span><h4>Pipeline UBX → IBGE-PPP → banco</h4></div><p><code>POST servicodados.ibge.gov.br/api/v1/ppp</code> [G5]; <code>convbin</code> [F1].</p><div class="ft"><span class="tag">Escritório</span><span class="tag">M</span><span class="st good">Risco baixo</span><span class="tag">A16</span></div></article>
+    <article class="ac top" data-l="escritorio" data-r="baixo"><div class="hd"><span class="id">O4</span><h4>PPK automático com RBMC</h4></div><p>Estação mais próxima + download pela API RBMC [G6] + <code>rnx2rtkp</code> [F1].</p><div class="ft"><span class="tag">Escritório</span><span class="tag">M</span><span class="st good">Risco baixo</span><span class="tag">A17</span></div></article>
+    <article class="ac" data-l="escritorio" data-r="baixo"><div class="hd"><span class="id">O5</span><h4>Gestão de configuração</h4></div><p>Git + <code>ubxsave</code>/<code>ubxcompare</code> + hash no <code>session.json</code> [F13].</p><div class="ft"><span class="tag">Escritório</span><span class="tag">P</span><span class="st good">Risco baixo</span><span class="tag">A05</span></div></article>
+    <article class="ac" data-l="escritorio" data-r="baixo"><div class="hd"><span class="id">O6</span><h4>OTA do S3 com rollback</h4></div><p>OTA + App Rollback (padrão) [G4b].</p><div class="ft"><span class="tag">Escritório</span><span class="tag">P</span><span class="st good">Risco baixo</span><span class="tag">A18</span></div></article>
+    <article class="ac" data-l="escritorio" data-r="baixo"><div class="hd"><span class="id">O7</span><h4>Relatório por sessão e GeoPackage</h4></div><p>Python (pyproj, sqlite/GeoPackage) para QGIS.</p><div class="ft"><span class="tag">Escritório</span><span class="tag">P–M</span><span class="st good">Risco baixo</span><span class="tag">A16</span></div></article>
+    <article class="ac" data-l="escritorio" data-r="medio"><div class="hd"><span class="id">O8</span><h4>Retorno de coordenadas ao S3</h4></div><p><code>sites.csv</code> por upload HTTP (rota do <code>file_serving</code>) [G2]. Risco herdado de F3.</p><div class="ft"><span class="tag">Escritório</span><span class="tag">P</span><span class="st warn">Risco médio</span><span class="tag">A04</span></div></article>
+  </div>
+</section>
+
+<section id="painel">
+  <span class="sec-num">04</span>
+  <h2>Sessão de ocupação e painel de saúde (F2, F5)</h2>
+  <div class="mock">
+    <div class="phone" aria-label="Exemplo ilustrativo do painel do S3 no celular">
+      <div class="bar"><span>LPB1-3F2A</span><span>192.168.4.1</span></div>
+      <div class="ex">exemplo ilustrativo</div>
+      <h5>Ocupação OBRA123-M1</h5>
+      <div class="sub">altura ARP 1,5231 m · ANN-MB-00 · Fulano</div>
+      <div style="font-size:13px;display:flex;justify-content:space-between"><span><b>3 h 12 min</b> ocupados</span><span style="color:var(--muted)">meta 4 h</span></div>
+      <div class="prog" title="3 h 12 min de 4 h"><i style="width:80%"></i><b style="left:62.5%"></b></div>
+      <div style="font-size:11.5px;color:var(--muted)">marca laranja = 2,5 h (PPP com F9P [F20])</div>
+      <div class="tiles">
+        <div class="tile"><small>Épocas RAWX</small><strong>99,9 %</strong></div>
+        <div class="tile"><small>Sinais/época</small><strong>58</strong></div>
+        <div class="tile"><small>Antena</small><strong><span class="st good">OK</span></strong></div>
+        <div class="tile"><small>Interferência</small><strong><span class="st good">baixa</span></strong></div>
+        <div class="tile"><small>SD livre</small><strong>27 GB</strong></div>
+        <div class="tile"><small>Bateria</small><strong><span class="st warn">4,9 V</span></strong></div>
+      </div>
+      <div class="btns"><span>Marcar evento</span><span class="p">Encerrar</span></div>
+    </div>
+    <div>
+      <h3 style="margin-top:0">O que o formulário captura</h3>
+      <ul class="tight">
+        <li>Código do ponto e tipo de marco.</li>
+        <li><b>Altura 1 e altura 2</b>, com alerta se diferirem mais de 3 mm <span class="tag h">HIPÓTESE</span>; vertical ou inclinada; ponto de referência (ARP).</li>
+        <li>Antena (lista com nomes IGS), operador, observações.</li>
+        <li>No encerramento: nova medição de altura e resumo (duração, % de épocas, satélites, alarmes).</li>
+      </ul>
+      <p>O portal abre sozinho por DNS e DHCP opção 114 no Android, iOS e Windows; não redireciona HTTPS [G2]. Os metadados do RINEX (<code>-hm</code>, <code>-hd</code>, <code>-ha</code>, <code>-hr</code>) saem do <code>session.json</code> sem digitação.</p>
+      <h3>Alarmes propostos</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Indicador</th><th>Origem</th><th>Alarme <span class="tag h">HIPÓTESE</span></th></tr></thead>
+        <tbody>
+          <tr><td>Ocupação × metas</td><td>relógio</td><td>verde ≥ 4 h [F15]; amarelo ≥ 2,5 h [F20]</td></tr>
+          <tr><td>Épocas RAWX</td><td>contador</td><td>&lt; 99 % na última hora</td></tr>
+          <tr><td>Sinais por época</td><td><code>numMeas</code></td><td>&lt; 20 por &gt; 5 min</td></tr>
+          <tr><td>Antena</td><td><code>MON-RF antStatus</code></td><td>qualquer estado ≠ OK</td></tr>
+          <tr><td>Interferência</td><td><code>MON-RF</code> jamming</td><td>acima do limiar &gt; 1 min</td></tr>
+          <tr><td>UART / ring / SD</td><td>contadores</td><td>overflow; latência SD &gt; 2 s</td></tr>
+          <tr><td>SD / bateria</td><td>FS / ADC</td><td>&lt; 1 GB / Vin baixo → fecha arquivo</td></tr>
+          <tr><td>Correções (F7/F9)</td><td>idade RTCM</td><td>&gt; 10 s sem RTCM</td></tr>
+        </tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<section id="marco">
+  <span class="sec-num">05</span>
+  <h2>Reconhecimento de marco com travas (F3)</h2>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 290" role="img" aria-label="Fluxo de decisão: após fix 3D o S3 procura um sítio a menos de 5 metros; sem candidato ou sem confirmação faz survey-in; com confirmação aplica modo fixo em RAM; se o receptor avisar posição incorreta, volta a survey-in e alarma. O RAW é sempre gravado.">
+      <defs><marker id="a5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-mk"/></marker>
+      <marker id="a5h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-mk hot"/></marker></defs>
+      <rect x="10" y="60" width="120" height="56" rx="6" class="d-box"/><text x="70" y="84" text-anchor="middle" class="d-t b">Fix 3D</text><text x="70" y="102" text-anchor="middle" class="d-t s">posição autônoma</text>
+      <polygon points="250,40 330,88 250,136 170,88" class="d-box2"/><text x="250" y="84" text-anchor="middle" class="d-t b">sítio a</text><text x="250" y="100" text-anchor="middle" class="d-t b">&lt; 5 m?</text>
+      <polygon points="460,40 540,88 460,136 380,88" class="d-box2"/><text x="460" y="84" text-anchor="middle" class="d-t b">código</text><text x="460" y="100" text-anchor="middle" class="d-t b">confirmado?</text>
+      <rect x="590" y="60" width="170" height="56" rx="6" class="d-acc"/><text x="675" y="84" text-anchor="middle" class="d-t b">TMODE FIXED (RAM)</text><text x="675" y="102" text-anchor="middle" class="d-t s">h = marco + antena</text>
+      <polygon points="860,40 940,88 860,136 780,88" class="d-box2"/><text x="860" y="84" text-anchor="middle" class="d-t b">INF-WARNING</text><text x="860" y="100" text-anchor="middle" class="d-t b">posição?</text>
+      <line x1="130" y1="88" x2="166" y2="88" class="d-line" marker-end="url(#a5)"/>
+      <line x1="330" y1="88" x2="376" y2="88" class="d-line" marker-end="url(#a5)"/><text x="353" y="80" text-anchor="middle" class="d-t s">sim</text>
+      <line x1="540" y1="88" x2="586" y2="88" class="d-line" marker-end="url(#a5)"/><text x="563" y="80" text-anchor="middle" class="d-t s">sim</text>
+      <line x1="760" y1="88" x2="776" y2="88" class="d-line" marker-end="url(#a5)"/>
+      <rect x="170" y="190" width="590" height="50" rx="6" class="d-box"/><text x="465" y="212" text-anchor="middle" class="d-t b">Survey-in (padrão seguro)</text><text x="465" y="229" text-anchor="middle" class="d-t s">a coordenada correta vem depois do PPP; translação Δ no escritório</text>
+      <line x1="250" y1="136" x2="250" y2="186" class="d-line" marker-end="url(#a5)"/><text x="258" y="166" class="d-t s">não</text>
+      <line x1="460" y1="136" x2="460" y2="186" class="d-line" marker-end="url(#a5)"/><text x="468" y="166" class="d-t s">não</text>
+      <path d="M860 136 V215 H764" class="d-line hot" marker-end="url(#a5h)"/><text x="868" y="170" class="d-t h">sim: alarma</text>
+      <text x="860" y="30" text-anchor="middle" class="d-t s">não: segue em FIXED + RTCM</text>
+      <rect x="10" y="262" width="940" height="22" rx="4" class="d-hot"/><text x="480" y="277" text-anchor="middle" class="d-t b">Em todos os caminhos o RAW continua sendo gravado → qualquer erro é recuperável por PPK/PPP</text>
+    </svg>
+    </div>
+    <figcaption><b>Nenhum caminho aplica modo fixo sem confirmação humana.</b> O raio de 5 m é <span class="tag h">HIPÓTESE</span> (erro autônomo ~1,5 m CEP pela spec [F3]); marcos a menos de 5 m entre si exigem digitar o código. O aviso "Base station position seems incorrect" dispara para erros acima de ~50 m [F2]. Modo e coordenada usados ficam no <code>session.json</code>.</figcaption>
+  </figure>
+</section>
+
+<section id="conexoes">
+  <span class="sec-num">06</span>
+  <h2>Conexões</h2>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 430" role="img" aria-label="O ESP32-S3 no centro conecta-se ao receptor pela UART1, ao celular por hotspot e por softAP, a um segundo ESP32 por ESP-NOW, ao Wi-Fi do escritório e ao PC por USB. A ponte Bluetooth atual continua ligada à UART2.">
+      <defs><marker id="a6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-mk"/></marker>
+      <marker id="a6a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-mk acc"/></marker></defs>
+      <rect x="390" y="170" width="180" height="90" rx="8" class="d-hot"/><text x="480" y="208" text-anchor="middle" class="d-t b">ESP32-S3</text><text x="480" y="226" text-anchor="middle" class="d-t s">AP + STA simultâneos</text><text x="480" y="243" text-anchor="middle" class="d-t m">WIFI_MODE_APSTA [G12]</text>
+      <!-- ZED -->
+      <rect x="20" y="170" width="150" height="90" rx="8" class="d-box2"/><text x="95" y="206" text-anchor="middle" class="d-t b">ZED-F9P</text><text x="95" y="224" text-anchor="middle" class="d-t s">UART1 ↔ S3</text><text x="95" y="242" text-anchor="middle" class="d-t s">UART2 ↔ ponte BT</text>
+      <line x1="174" y1="215" x2="386" y2="215" class="d-line" marker-end="url(#a6)" marker-start="url(#a6)"/><text x="280" y="207" text-anchor="middle" class="d-t m">UBX/NMEA ↔ RTCM/CFG</text>
+      <rect x="20" y="40" width="150" height="70" rx="8" class="d-acc"/><text x="95" y="70" text-anchor="middle" class="d-t b">M1 · ponte BT</text><text x="95" y="88" text-anchor="middle" class="d-t s">uso atual, intocado</text>
+      <line x1="95" y1="166" x2="95" y2="114" class="d-line acc" marker-end="url(#a6a)" marker-start="url(#a6a)"/>
+      <!-- spokes -->
+      <rect x="680" y="20" width="260" height="70" rx="8" class="d-box"/><text x="810" y="46" text-anchor="middle" class="d-t b">M2 · Hotspot do celular</text><text x="810" y="64" text-anchor="middle" class="d-t s">S3 = cliente NTRIP (RBMC-IP)</text><text x="810" y="80" text-anchor="middle" class="d-t s">NMEA TCP → SW Maps</text>
+      <line x1="570" y1="185" x2="676" y2="70" class="d-line" marker-end="url(#a6)" marker-start="url(#a6)"/><text x="568" y="116" class="d-t m">internet</text>
+      <rect x="680" y="110" width="260" height="60" rx="8" class="d-box"/><text x="810" y="136" text-anchor="middle" class="d-t b">M3 · softAP do S3</text><text x="810" y="154" text-anchor="middle" class="d-t s">painel, sessão, download, caster</text>
+      <line x1="570" y1="205" x2="676" y2="145" class="d-line" marker-end="url(#a6)" marker-start="url(#a6)"/>
+      <rect x="680" y="190" width="260" height="60" rx="8" class="d-box"/><text x="810" y="216" text-anchor="middle" class="d-t b">M4 · ESP-NOW</text><text x="810" y="234" text-anchor="middle" class="d-t s">2º ESP32 no rover · ~250 m</text>
+      <line x1="574" y1="220" x2="676" y2="220" class="d-line" marker-end="url(#a6)"/><text x="625" y="212" text-anchor="middle" class="d-t m">RTCM</text>
+      <rect x="680" y="270" width="260" height="60" rx="8" class="d-box"/><text x="810" y="296" text-anchor="middle" class="d-t b">M5 · Wi-Fi do escritório</text><text x="810" y="314" text-anchor="middle" class="d-t s">mDNS, descarga, OTA, sites.csv</text>
+      <line x1="570" y1="240" x2="676" y2="295" class="d-line" marker-end="url(#a6)" marker-start="url(#a6)"/>
+      <rect x="680" y="350" width="260" height="60" rx="8" class="d-box"/><text x="810" y="376" text-anchor="middle" class="d-t b">M6 · USB MSC</text><text x="810" y="394" text-anchor="middle" class="d-t s">PC vê o SD como pendrive</text>
+      <line x1="540" y1="260" x2="676" y2="372" class="d-line" marker-end="url(#a6)"/><text x="610" y="330" class="d-t m">USB nativo</text>
+      <path d="M402 290 h150 l14 14 v40 h-164 z" class="d-box"/><text x="484" y="318" text-anchor="middle" class="d-t b">microSD</text><text x="484" y="334" text-anchor="middle" class="d-t s">UBX + session.json</text>
+      <line x1="480" y1="260" x2="480" y2="286" class="d-line" marker-end="url(#a6)"/>
+    </svg>
+    </div>
+    <figcaption><b>Seis caminhos além do Bluetooth atual.</b> M1 continua igual. M2 dispensa o Bluetooth no campo, M3 funciona sem internet, M4 leva correções a um rover sem roteador, M5 e M6 são do escritório.</figcaption>
+  </figure>
+  <div class="tw"><table>
+    <thead><tr><th>Modo</th><th>Internet</th><th>Android</th><th>iOS</th><th>Observações</th></tr></thead>
+    <tbody>
+      <tr><td>M1 · Atual</td><td>celular</td><td>✔ SPP/BLE</td><td>✔ BLE</td><td>Inalterado (A1)</td></tr>
+      <tr><td>M2 · S3 NTRIP + NMEA TCP</td><td>hotspot</td><td>✔ [G7]</td><td>✔ [G7, G9]</td><td>Exige NMEA na UART1 junto com UBX (+~0,5 kB/s). Hotspot em 2,4 GHz.</td></tr>
+      <tr><td>M3 · softAP</td><td>não</td><td>✔</td><td>✔</td><td>Celular sem dados móveis enquanto conectado</td></tr>
+      <tr><td>M4 · ESP-NOW</td><td>não</td><td>—</td><td>—</td><td>~250 m em visada direta; mesmo canal Wi-Fi nas duas pontas [G11]</td></tr>
+      <tr><td>M5 · Wi-Fi do escritório</td><td>LAN</td><td>—</td><td>—</td><td>Descarga, OTA, <code>sites.csv</code></td></tr>
+      <tr><td>M6 · USB MSC</td><td>não</td><td>—</td><td>—</td><td>Firmware para de gravar enquanto o PC monta [G1]</td></tr>
+    </tbody></table></div>
+
+  <h3>Regra de ouro: uma única fonte de RTCM</h3>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 240" role="img" aria-label="Três fontes possíveis de correção, SW Maps pela ponte na UART2, o cliente NTRIP do S3 e o ESP-NOW na UART1, passam por uma chave exclusiva RTCM_SRC; apenas uma chega ao receptor.">
+      <defs><marker id="a7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-mk acc"/></marker></defs>
+      <rect x="20" y="20" width="220" height="50" rx="6" class="d-acc"/><text x="130" y="42" text-anchor="middle" class="d-t b">SW Maps → ponte BT</text><text x="130" y="59" text-anchor="middle" class="d-t m">app_bt · UART2</text>
+      <rect x="20" y="95" width="220" height="50" rx="6" class="d-box"/><text x="130" y="117" text-anchor="middle" class="d-t b">S3 cliente NTRIP</text><text x="130" y="134" text-anchor="middle" class="d-t m">s3_ntrip · UART1</text>
+      <rect x="20" y="170" width="220" height="50" rx="6" class="d-box"/><text x="130" y="192" text-anchor="middle" class="d-t b">ESP-NOW (rover)</text><text x="130" y="209" text-anchor="middle" class="d-t m">s3_espnow · UART1</text>
+      <rect x="380" y="70" width="190" height="100" rx="8" class="d-box2"/><text x="475" y="110" text-anchor="middle" class="d-t b">RTCM_SRC</text><text x="475" y="128" text-anchor="middle" class="d-t s">chave exclusiva</text><text x="475" y="146" text-anchor="middle" class="d-t m">+ aviso no painel</text>
+      <line x1="240" y1="45" x2="376" y2="100" class="d-line acc" marker-end="url(#a7)"/><text x="300" y="58" class="d-t a">ativa</text>
+      <line x1="240" y1="120" x2="376" y2="120" class="d-line dash"/><text x="300" y="112" class="d-t s">em espera</text>
+      <line x1="240" y1="195" x2="376" y2="145" class="d-line dash"/><text x="300" y="196" class="d-t s">em espera</text>
+      <rect x="700" y="80" width="230" height="80" rx="8" class="d-box2"/><text x="815" y="114" text-anchor="middle" class="d-t b">ZED-F9P</text><text x="815" y="132" text-anchor="middle" class="d-t s">recebe uma fonte só</text>
+      <line x1="570" y1="120" x2="696" y2="120" class="d-line acc" marker-end="url(#a7)"/><text x="633" y="112" text-anchor="middle" class="d-t m">RTCM</text>
+    </svg>
+    </div>
+    <figcaption><b>Só uma fonte de correção alimenta o receptor.</b> Precaução <span class="tag h">HIPÓTESE</span>: não há documentação u-blox sobre duas entradas RTCM simultâneas. Quando o S3 for a fonte, o técnico não liga o NTRIP no SW Maps; o painel avisa.</figcaption>
+  </figure>
+  <div class="cols">
+    <div class="card"><h4>F7 · cliente NTRIP no S3</h4><ul class="tight">
+      <li>Estação mais próxima: sourcetable (registros <code>STR</code> com lat/lon <span class="tag h">HIPÓTESE</span>) ou API RBMC <code>relatorio/{estacao}</code> [G6].</li>
+      <li>Failover por lista ordenada e reconexão exponencial.</li>
+      <li>GGA do <code>NAV-PVT</code> a cada 10 s, se exigido.</li>
+      <li>Grava o RTCM recebido (<code>*.rtcm3</code>) para PPK de contingência.</li>
+      <li>Credenciais no NVS, nunca no SD.</li></ul></div>
+    <div class="card"><h4>F11 · NMEA por TCP</h4><p>Servidor TCP (SparkFun usa 2948 [G9]) envia GGA/RMC/GST. Habilitar <code>CFG-MSGOUT-NMEA_ID_GGA_UART1</code> (e RMC/GST) e <code>CFG-UART1OUTPROT-NMEA=1</code> [F11]. O S3 grava tudo e repassa ao TCP só as linhas NMEA.</p></div>
+    <div class="card"><h4>F12 · hora GNSS</h4><p>Relógio do S3 por <code>settimeofday()</code> a partir do <code>NAV-PVT</code> [G12]; resposta NTP no softAP para notebook, controle do drone ou câmeras. Precisão de ms; TIMEPULSE num GPIO melhora <span class="tag h">HIPÓTESE</span>.</p></div>
+    <div class="card"><h4>F6 · eventos</h4><p>Sem EXTINT: botão grava o tempo do último <code>NAV-PVT</code> (ms). Com EXTINT: <code>UBX-TIM-TM2</code> com o tempo da borda [F2 §3.13.2], convertido pelo <code>convbin</code> em evento flag 5 no RINEX [F1].</p></div>
+  </div>
+</section>
+
+<section id="escritorio">
+  <span class="sec-num">07</span>
+  <h2>Escritório</h2>
+  <div class="cols">
+    <div class="card"><h4>O1 · pendrive USB</h4><p>Porta USB nativa do devkit. Ao detectar o host: fecha o arquivo, pausa a gravação, expõe o MSC. Em campo, a gravação não depende disso (power bank não enumera como host <span class="tag h">HIPÓTESE</span>).</p></div>
+    <div class="card"><h4>O2 · descarga por Wi-Fi</h4><p><code>GET /manifest.json</code> (nome, tamanho, SHA-256 calculado no S3) → baixa novos → confere hash → <code>POST /ack</code>. Exclusão no S3 só com ack, idade mínima e falta de espaço.</p></div>
+    <div class="card"><h4>O5–O8</h4><p>Git com perfis e hash em cada sessão; OTA com rollback, confirmando a versão só após autoteste (UART com UBX válido, SD montado) [G4b]; relatório MD/PDF + GeoPackage; <code>sites.csv</code> de volta com validação de esquema.</p></div>
+  </div>
+  <h3>O3 · pipeline com a API do IBGE-PPP</h3>
+  <p>Parâmetros documentados [G5] <span class="tag s">trecho de busca</span>, conferir antes de codificar: <code>arquivo</code>, <code>tipo-levantamento</code>, <code>modelo-antena</code>, <code>altura-antena</code> (m, ponto decimal, marco → ARP), <code>marco-ibge</code>, <code>email</code>, <code>autorizacao-uso</code>. Resposta JSON com URL do resultado.</p>
+<pre><code>import json, requests
+s = json.load(open("session.json"))
+files = {"arquivo": open(s["rinex211_zip"], "rb")}
+data = {"tipo-levantamento": "estatico",            # conferir grafia aceita na doc
+        "modelo-antena": s["antena_igs"],
+        "altura-antena": f'{s["altura_arp_m"]:.4f}',
+        "email": "geodesia@luftplan.example"}
+r = requests.post("https://servicodados.ibge.gov.br/api/v1/ppp", files=files, data=data, timeout=600)
+r.raise_for_status(); resultado = r.json()          # guardar JSON bruto junto da sessão</code></pre>
+  <div class="cols">
+    <div class="card"><h4>O4 · PPK automático</h4><ul class="tight">
+      <li>Estação mais próxima via <code>…/api/v1/rbmc/relatorio/{estacao}</code> (cache local) [G6].</li>
+      <li>Estático: <code>…/rinex2/{estacao}/{ano}/{dia}</code> (15 s).</li>
+      <li>Cinemático/drone: <code>…/rinex3/1s/{estacao}/{ano}/{dia}/{hora}/{minuto}/{tipo}</code>.</li>
+      <li><code>.conf</code> gerado do modelo do v1; sinalizar |ΔH| &gt; 3 cm ou |ΔV| &gt; 6 cm contra o IBGE-PPP.</li></ul></div>
+    <div class="card"><h4>CSRS-PPP como controle</h4><p>A NRCan oferece web, "PPP Direct" e um script de submissão automática distribuído sob pedido [G13] <span class="tag s">trecho de busca</span>. Pedir o script, ou manter o CSRS manual por amostragem (1 a cada 5 sessões).</p></div>
+  </div>
+</section>
+
+<section id="firmware">
+  <span class="sec-num">08</span>
+  <h2>Arquitetura de firmware modular</h2>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 400" role="img" aria-label="Módulos do firmware: a UART do GNSS alimenta um ring buffer que vai ao gravador do SD e ao parser; o parser alimenta o estado usado pela web e pela saúde; o gerenciador de configuração escreve só em RAM; o roteador de RTCM escolhe uma fonte; rede, web e USB têm prioridade menor que a gravação.">
+      <defs><marker id="a8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-mk"/></marker>
+      <marker id="a8h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-mk hot"/></marker></defs>
+      <rect x="10" y="10" width="940" height="170" rx="8" class="d-hot" style="fill:none"/>
+      <text x="24" y="32" class="d-t h">Prioridade alta · gravação</text>
+      <rect x="30" y="60" width="150" height="60" rx="6" class="d-box"/><text x="105" y="86" text-anchor="middle" class="d-t b">uart_gnss</text><text x="105" y="104" text-anchor="middle" class="d-t m">UART1</text>
+      <rect x="230" y="60" width="150" height="60" rx="6" class="d-box"/><text x="305" y="86" text-anchor="middle" class="d-t b">ring_raw</text><text x="305" y="104" text-anchor="middle" class="d-t m">64–256 KB</text>
+      <rect x="430" y="40" width="190" height="56" rx="6" class="d-hot"/><text x="525" y="64" text-anchor="middle" class="d-t b">sd_logger</text><text x="525" y="82" text-anchor="middle" class="d-t s">todos os bytes · rotação</text>
+      <rect x="430" y="110" width="190" height="56" rx="6" class="d-box"/><text x="525" y="134" text-anchor="middle" class="d-t b">ubx_nmea_parser</text><text x="525" y="152" text-anchor="middle" class="d-t s">não descarta nada</text>
+      <rect x="680" y="110" width="250" height="56" rx="6" class="d-box2"/><text x="805" y="134" text-anchor="middle" class="d-t b">estado</text><text x="805" y="152" text-anchor="middle" class="d-t s">PVT · MON-RF · contadores</text>
+      <path d="M682 42 h234 l14 14 v32 h-248 z" class="d-box"/><text x="806" y="70" text-anchor="middle" class="d-t b">microSD · FAT32</text>
+      <line x1="180" y1="90" x2="226" y2="90" class="d-line" marker-end="url(#a8)"/>
+      <line x1="380" y1="80" x2="426" y2="68" class="d-line hot" marker-end="url(#a8h)"/>
+      <line x1="380" y1="100" x2="426" y2="136" class="d-line" marker-end="url(#a8)"/>
+      <line x1="620" y1="68" x2="678" y2="68" class="d-line hot" marker-end="url(#a8h)"/>
+      <line x1="620" y1="138" x2="676" y2="138" class="d-line" marker-end="url(#a8)"/>
+      <text x="24" y="214" class="d-t ttl">Prioridade menor · controle, rede, interface</text>
+      <rect x="30" y="230" width="200" height="66" rx="6" class="d-acc"/><text x="130" y="256" text-anchor="middle" class="d-t b">cfg_manager</text><text x="130" y="274" text-anchor="middle" class="d-t s">VALSET/VALGET só RAM</text>
+      <rect x="250" y="230" width="210" height="66" rx="6" class="d-box"/><text x="355" y="256" text-anchor="middle" class="d-t b">rtcm_router</text><text x="355" y="274" text-anchor="middle" class="d-t s">fonte única · saídas</text>
+      <rect x="480" y="230" width="210" height="66" rx="6" class="d-box"/><text x="585" y="256" text-anchor="middle" class="d-t b">net</text><text x="585" y="274" text-anchor="middle" class="d-t s">softAP · STA · mDNS · NTP</text>
+      <rect x="710" y="230" width="220" height="66" rx="6" class="d-box"/><text x="820" y="256" text-anchor="middle" class="d-t b">web</text><text x="820" y="274" text-anchor="middle" class="d-t m">/status /session /files /manifest</text>
+      <rect x="250" y="316" width="210" height="60" rx="6" class="d-box"/><text x="355" y="342" text-anchor="middle" class="d-t b">usb_msc</text><text x="355" y="360" text-anchor="middle" class="d-t s">exclusão mútua c/ sd_logger</text>
+      <rect x="480" y="316" width="210" height="60" rx="6" class="d-box"/><text x="585" y="342" text-anchor="middle" class="d-t b">health</text><text x="585" y="360" text-anchor="middle" class="d-t s">LED · buzzer · CSV · Vin</text>
+      <rect x="710" y="316" width="220" height="60" rx="6" class="d-box"/><text x="820" y="342" text-anchor="middle" class="d-t b">NVS</text><text x="820" y="360" text-anchor="middle" class="d-t s">credenciais e config do S3</text>
+      <line x1="105" y1="226" x2="105" y2="124" class="d-line" marker-end="url(#a8)"/><text x="112" y="200" class="d-t m">CFG → ZED</text>
+      <line x1="355" y1="226" x2="180" y2="112" class="d-line" marker-end="url(#a8)"/><text x="262" y="186" class="d-t m">RTCM → ZED</text>
+      <line x1="805" y1="166" x2="820" y2="226" class="d-line" marker-end="url(#a8)"/>
+    </svg>
+    </div>
+    <figcaption><b>A gravação fica isolada no topo.</b> UART → ring → SD não depende de nenhum módulo de baixo. Configuração e RTCM descem ao receptor pela mesma UART1, mas só pelo <code>cfg_manager</code> (RAM) e pelo <code>rtcm_router</code> (fonte única).</figcaption>
+  </figure>
+  <div class="note"><b>Regras invioláveis:</b> (1) o <code>sd_logger</code> grava todos os bytes; (2) configuração só em RAM, sempre verificada; (3) uma fonte de RTCM; (4) rede e web com prioridade menor que gravação; (5) credenciais no NVS; (6) falha de rede nunca para a gravação (watchdog reinicia o módulo, não o chip).</div>
+  <p>Referências: ESP-IDF (Apache-2.0) e exemplos [G1–G4]; <code>espressif/mdns</code> [G3]; SparkFun u-blox GNSS v3 3.1.15 (MIT) [G8] se o projeto for em Arduino-ESP32; NTRIP do esp32-xbee é GPL-3.0 [F9].</p>
+</section>
+
+<section id="ciclo">
+  <span class="sec-num">09</span>
+  <h2>Ciclo ponta a ponta</h2>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 400" role="img" aria-label="Ciclo: no campo a base grava, o celular registra a sessão e o painel acompanha; os dados vão ao escritório por USB ou Wi-Fi, onde viram RINEX, passam por IBGE-PPP e PPK e alimentam o banco de sítios; o sites.csv volta ao S3 e a próxima visita usa a coordenada PPP.">
+      <defs><marker id="a9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-mk"/></marker>
+      <marker id="a9h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-mk hot"/></marker></defs>
+      <text x="40" y="26" class="d-t ttl">Campo</text><text x="620" y="26" class="d-t ttl">Escritório</text>
+      <line x1="480" y1="10" x2="480" y2="390" class="d-grid" style="stroke-dasharray:6 5"/>
+      <rect x="40" y="40" width="340" height="44" rx="6" class="d-box"/><text x="210" y="67" text-anchor="middle" class="d-t">Liga a base → gravação automática (F1)</text>
+      <rect x="40" y="100" width="340" height="44" rx="6" class="d-box"/><text x="210" y="127" text-anchor="middle" class="d-t">Celular → portal → session.json (F2)</text>
+      <rect x="40" y="160" width="340" height="44" rx="6" class="d-acc"/><text x="210" y="187" text-anchor="middle" class="d-t">Marco conhecido? → FIXED + RTCM (F3)</text>
+      <rect x="40" y="220" width="340" height="44" rx="6" class="d-box"/><text x="210" y="247" text-anchor="middle" class="d-t">Painel: tempo, qualidade, alarmes (F5)</text>
+      <rect x="40" y="280" width="340" height="44" rx="6" class="d-box"/><text x="210" y="307" text-anchor="middle" class="d-t">Encerrar → altura final → resumo</text>
+      <line x1="210" y1="84" x2="210" y2="96" class="d-line" marker-end="url(#a9)"/><line x1="210" y1="144" x2="210" y2="156" class="d-line" marker-end="url(#a9)"/><line x1="210" y1="204" x2="210" y2="216" class="d-line" marker-end="url(#a9)"/><line x1="210" y1="264" x2="210" y2="276" class="d-line" marker-end="url(#a9)"/>
+      <rect x="580" y="40" width="340" height="44" rx="6" class="d-box"/><text x="750" y="67" text-anchor="middle" class="d-t">Ingestão + verificação SHA-256</text>
+      <rect x="580" y="100" width="340" height="44" rx="6" class="d-box"/><text x="750" y="127" text-anchor="middle" class="d-t">convbin com metadados do session.json</text>
+      <rect x="580" y="160" width="160" height="44" rx="6" class="d-hot"/><text x="660" y="187" text-anchor="middle" class="d-t">IBGE-PPP API (O3)</text>
+      <rect x="760" y="160" width="160" height="44" rx="6" class="d-ser"/><text x="840" y="187" text-anchor="middle" class="d-t">PPK RBMC API (O4)</text>
+      <rect x="580" y="220" width="340" height="44" rx="6" class="d-box"/><text x="750" y="247" text-anchor="middle" class="d-t">Comparação + relatório + GeoPackage (O7)</text>
+      <rect x="580" y="280" width="340" height="44" rx="6" class="d-acc"/><text x="750" y="307" text-anchor="middle" class="d-t b">Banco de sítios (SIRGAS2000 2000,4)</text>
+      <line x1="750" y1="84" x2="750" y2="96" class="d-line" marker-end="url(#a9)"/><line x1="700" y1="144" x2="670" y2="156" class="d-line" marker-end="url(#a9)"/><line x1="800" y1="144" x2="830" y2="156" class="d-line" marker-end="url(#a9)"/><line x1="660" y1="204" x2="700" y2="216" class="d-line" marker-end="url(#a9)"/><line x1="840" y1="204" x2="800" y2="216" class="d-line" marker-end="url(#a9)"/><line x1="750" y1="264" x2="750" y2="276" class="d-line" marker-end="url(#a9)"/>
+      <path d="M380 302 C470 302 470 62 576 62" class="d-line hot" marker-end="url(#a9h)"/><text x="400" y="230" class="d-t h">USB MSC (O1) ou</text><text x="400" y="246" class="d-t h">Wi-Fi + mDNS (O2)</text>
+      <path d="M750 324 V360 H210 V208" class="d-line acc" marker-end="url(#a9)"/><text x="480" y="378" text-anchor="middle" class="d-t a">sites.csv atualizado (O8) → próxima visita usa a coordenada PPP</text>
+    </svg>
+    </div>
+    <figcaption><b>O ciclo se fecha no S3.</b> O que sai do campo (UBX + <code>session.json</code>) volta como coordenada validada (<code>sites.csv</code>), usada por F3 na próxima ocupação do mesmo marco.</figcaption>
+  </figure>
+</section>
+
+<section id="formatos">
+  <span class="sec-num">10</span>
+  <h2>Formatos de arquivo (contratos S3 ↔ escritório)</h2>
+  <div class="cols">
+    <div style="min-width:0">
+      <h3 style="margin-top:0"><code>session.json</code></h3>
+<pre><code>{
+  "schema": "luftplan.session/1",
+  "device": "LPB1", "fw_s3": "1.2.0", "zed_monver": "HPG 1.32",
+  "profile": {"name": "base_logger", "sha256": "…"},
+  "site": {"id": "OBRA123-M1", "marker_type": "pino",
+           "fixed_mode_used": false},
+  "antenna": {"igs_type": "XXXXXXXXXXXXXXX NONE", "serial": "0001",
+              "height_measured_m": [1.5230, 1.5232],
+              "height_type": "vertical", "height_ref": "ARP",
+              "height_final_m": 1.5231},
+  "operator": "Fulano",
+  "gnss_time": {"start": "2026-10-04T13:02:11Z",
+                "end": "2026-10-04T19:05:40Z"},
+  "files": [{"name": "LPB1_20261004_1300.ubx",
+             "bytes": 10123456, "sha256": "…"}],
+  "quality": {"epochs_expected": 21809, "epochs_ok": 21790,
+              "alarms": ["ant_short@14:22Z"]},
+  "events": [{"t": "2026-10-04T13:05:00Z", "type": "altura_medida"}],
+  "rtcm_src": "none"
+}</code></pre>
+    </div>
+    <div style="min-width:0">
+      <h3 style="margin-top:0">Outros arquivos</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Arquivo</th><th>Conteúdo</th></tr></thead>
+        <tbody>
+          <tr><td><code>sites.csv</code></td><td><code>id, descricao, lat, lon, h_elip, sigma_h, sigma_v, ref, epoca, origem, data, sessao_ref</code>; ref = SIRGAS2000, época = 2000.4, origem = IBGE-PPP ou PPK-RBMC</td></tr>
+          <tr><td><code>manifest.json</code></td><td>Lista de <code>{name, bytes, sha256, closed, acked}</code>; arquivos abertos (<code>closed=false</code>) não são baixados</td></tr>
+          <tr><td><code>health_AAAAMMDD.csv</code></td><td>Colunas do v1 + <code>antStatus</code>, <code>jam</code>, <code>rtcm_age</code>, <code>rtcm_src</code>, <code>vin</code></td></tr>
+          <tr><td><code>/profiles/*.cfg</code></td><td><code>KEY,valor</code> (formato RTKBase): <code>base_logger</code>, <code>base_rtcm</code>, <code>rover_ntrip_s3</code>, <code>diagnostico</code></td></tr>
+        </tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<section id="roteiro">
+  <span class="sec-num">11</span>
+  <h2>Roteiro de implementação</h2>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 250" role="img" aria-label="Dependências: E1 saúde e energia leva a E2 portal e pendrive, que leva a E3 pipeline IBGE-PPP; de E3 saem E4 PPK e E5 Wi-Fi e OTA; E6 perfis e reconhecimento de marco depende de E3 e E5; E7 NTRIP e NMEA TCP depende das respostas Q17 e Q18; E8 é opcional.">
+      <defs><marker id="a10" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-mk"/></marker></defs>
+      <rect x="10" y="90" width="120" height="60" rx="6" class="d-box2"/><text x="70" y="114" text-anchor="middle" class="d-t b">v1 F2–F4</text><text x="70" y="132" text-anchor="middle" class="d-t s">gravador ok</text>
+      <rect x="160" y="90" width="120" height="60" rx="6" class="d-hot"/><text x="220" y="114" text-anchor="middle" class="d-t b">E1</text><text x="220" y="132" text-anchor="middle" class="d-t s">saúde · energia</text>
+      <rect x="310" y="90" width="120" height="60" rx="6" class="d-hot"/><text x="370" y="114" text-anchor="middle" class="d-t b">E2</text><text x="370" y="132" text-anchor="middle" class="d-t s">portal · MSC</text>
+      <rect x="460" y="90" width="120" height="60" rx="6" class="d-hot"/><text x="520" y="114" text-anchor="middle" class="d-t b">E3</text><text x="520" y="132" text-anchor="middle" class="d-t s">IBGE-PPP</text>
+      <rect x="620" y="20" width="130" height="56" rx="6" class="d-box"/><text x="685" y="44" text-anchor="middle" class="d-t b">E4</text><text x="685" y="62" text-anchor="middle" class="d-t s">PPK RBMC</text>
+      <rect x="620" y="164" width="130" height="56" rx="6" class="d-box"/><text x="685" y="188" text-anchor="middle" class="d-t b">E5</text><text x="685" y="206" text-anchor="middle" class="d-t s">Wi-Fi · OTA</text>
+      <rect x="800" y="92" width="150" height="56" rx="6" class="d-acc"/><text x="875" y="116" text-anchor="middle" class="d-t b">E6</text><text x="875" y="134" text-anchor="middle" class="d-t s">perfis · F3 · O8</text>
+      <rect x="310" y="190" width="200" height="50" rx="6" class="d-box" style="stroke-dasharray:4 3"/><text x="410" y="212" text-anchor="middle" class="d-t b">E7 · NTRIP + NMEA TCP</text><text x="410" y="229" text-anchor="middle" class="d-t s">após Q17/Q18</text>
+      <rect x="310" y="16" width="200" height="50" rx="6" class="d-box" style="stroke-dasharray:4 3"/><text x="410" y="38" text-anchor="middle" class="d-t b">E8 · opcionais</text><text x="410" y="55" text-anchor="middle" class="d-t s">F6 F8 F9 F10 F12</text>
+      <line x1="130" y1="120" x2="156" y2="120" class="d-line" marker-end="url(#a10)"/><line x1="280" y1="120" x2="306" y2="120" class="d-line" marker-end="url(#a10)"/><line x1="430" y1="120" x2="456" y2="120" class="d-line" marker-end="url(#a10)"/>
+      <line x1="580" y1="108" x2="616" y2="56" class="d-line" marker-end="url(#a10)"/><line x1="580" y1="132" x2="616" y2="184" class="d-line" marker-end="url(#a10)"/>
+      <line x1="580" y1="120" x2="796" y2="120" class="d-line" marker-end="url(#a10)"/><line x1="750" y1="186" x2="796" y2="142" class="d-line" marker-end="url(#a10)"/>
+      <path d="M220 150 V215 H306" class="d-line dash" marker-end="url(#a10)"/>
+    </svg>
+    </div>
+    <figcaption><b>E1–E3 primeiro:</b> são as que mais tiram trabalho manual sem tocar na medição. E6 (que inclui o modo fixo automático) só depois do pipeline e da descarga validados.</figcaption>
+  </figure>
+  <div class="tw"><table>
+    <thead><tr><th>Etapa</th><th>Depende de</th><th>Entrega</th><th>Testes</th></tr></thead>
+    <tbody>
+      <tr><td>E1</td><td>Fases 2–4 do v1</td><td>F5 + F13 + <code>/status</code></td><td>A06, T08</td></tr>
+      <tr><td>E2</td><td>E1</td><td>F2 + O1</td><td>A01, A02, A14</td></tr>
+      <tr><td>E3</td><td>E2</td><td>O3 + O7</td><td>A16</td></tr>
+      <tr><td>E4</td><td>E3</td><td>O4 + comparação</td><td>A17</td></tr>
+      <tr><td>E5</td><td>E3</td><td>O2 + O6</td><td>A15, A18</td></tr>
+      <tr><td>E6</td><td>E3, E5</td><td>F4 + O8 + F3</td><td>A03–A05</td></tr>
+      <tr><td>E7</td><td>Q17/Q18</td><td>F7 + F11</td><td>A08, A09, A12</td></tr>
+      <tr><td>E8</td><td>opcional</td><td>F8, F9, F10, F12, F6</td><td>A07, A10, A11, A13</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="testes">
+  <span class="sec-num">12</span>
+  <h2>Testes individuais</h2>
+  <div class="tw"><table>
+    <thead><tr><th>ID</th><th>Objetivo</th><th>Variável</th><th>Procedimento</th><th>Critério de aceite</th></tr></thead>
+    <tbody>
+      <tr><td>A01</td><td>Portal abre sozinho</td><td>Sistema do celular</td><td>Android e iPhone no softAP</td><td>Abre sem URL em ≥ 2 de 3 tentativas; <code>192.168.4.1</code> sempre funciona</td></tr>
+      <tr><td>A02</td><td><code>session.json</code> correto</td><td>Uso do formulário</td><td>Salvar 10× durante a gravação</td><td>JSON válido; T07 bit-exato</td></tr>
+      <tr><td>A03</td><td>Reconhecimento de marco</td><td>Distância</td><td>0, 3 e 20 m de um sítio</td><td>Propõe a 0 e 3 m; não a 20 m; nunca aplica sem confirmação</td></tr>
+      <tr><td>A04</td><td>Trava de coordenada errada</td><td>Coordenada</td><td>Sítio com erro de 100 m, confirmado</td><td>Detecta <code>INF-WARNING</code>, volta a survey-in, alarma; RAW segue</td></tr>
+      <tr><td>A05</td><td>Perfil aplicado e revertido</td><td>Perfil</td><td>Aplicar <code>base_rtcm</code>, verificar, reverter</td><td>VALGET 100 %; <code>ubxcompare</code> 0 diferenças</td></tr>
+      <tr><td>A06</td><td>Alarmes disparam</td><td>Falha simulada</td><td>Antena fora; SD cheio; Vin baixo</td><td>Alarme em &lt; 10 s; gravação mantida (exceto Vin)</td></tr>
+      <tr><td>A07</td><td>Evento chega ao RINEX</td><td>Fonte</td><td>Botão / EXTINT</td><td>CSV ± 50 ms <span class="tag h">HIPÓTESE</span>; flag 5 no RINEX</td></tr>
+      <tr><td>A08</td><td>Cliente NTRIP do S3</td><td>Fonte = S3</td><td>Hotspot + RBMC-IP</td><td>Fix RTK; idade &lt; 3 s em 95 %; <code>.rtcm3</code> convertível</td></tr>
+      <tr><td>A09</td><td>Failover</td><td>Mountpoint</td><td>Primeiro inválido</td><td>Troca em &lt; 30 s</td></tr>
+      <tr><td>A10</td><td>Servidor NTRIP</td><td>Caster de teste</td><td>Base envia; rover consome</td><td>1 h contínua; reconexão automática</td></tr>
+      <tr><td>A11</td><td>ESP-NOW</td><td>Distância</td><td>50, 150, 250 m em visada</td><td>Perda &lt; 1 % com RTK fixo</td></tr>
+      <tr><td>A12</td><td>NMEA TCP para o SW Maps</td><td>Plataforma</td><td>Android e iPhone no hotspot</td><td>Posição e fix exibidos; 1 h sem queda</td></tr>
+      <tr><td>A13</td><td>NTP local</td><td>Cliente</td><td>Notebook sincroniza</td><td>Offset &lt; 20 ms <span class="tag h">HIPÓTESE</span></td></tr>
+      <tr><td>A14</td><td>Pendrive USB</td><td>Conexão USB</td><td>Plugar durante a gravação</td><td>Fecha arquivo antes do MSC; SHA íntegro; retoma</td></tr>
+      <tr><td>A15</td><td>Descarga automática</td><td>Wi-Fi</td><td>3 dias de dados</td><td>100 % copiados com SHA; nenhuma exclusão sem ack</td></tr>
+      <tr><td>A16</td><td>Pipeline IBGE-PPP</td><td>Sessão real</td><td>Sem intervenção</td><td>SIRGAS2000 armazenado; RINEX = <code>session.json</code></td></tr>
+      <tr><td>A17</td><td>PPK automático</td><td>Estação</td><td>Sessão perto da UFPR</td><td>Estação correta; diferença dentro dos critérios</td></tr>
+      <tr><td>A18</td><td>OTA com rollback</td><td>Imagem defeituosa</td><td>Firmware que falha no autoteste</td><td>Volta sozinho; gravação continua</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="riscos">
+  <span class="sec-num">13</span>
+  <h2>Riscos específicos das automações</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Risco</th><th>Mitigação</th></tr></thead>
+    <tbody>
+      <tr><td><span class="st crit">Modo fixo automático com marco errado</span></td><td>Confirmação por código, raio pequeno, monitor de <code>INF-WARNING</code>, RAW sempre gravado (A03, A04)</td></tr>
+      <tr><td><span class="st serious">Duas fontes de RTCM simultâneas</span></td><td>Chave <code>RTCM_SRC</code> exclusiva e aviso no painel</td></tr>
+      <tr><td><span class="st serious">Rede trava ou atrasa a gravação</span></td><td>Prioridades, watchdog por módulo, A02/A14 com T07 bit-exato</td></tr>
+      <tr><td><span class="st warn">Credenciais vazarem pelo SD</span></td><td>NVS; SD sem segredos; softAP WPA2</td></tr>
+      <tr><td><span class="st warn">Exclusão acidental de dados</span></td><td>Só com ack + SHA + idade + falta de espaço; nada manual pela web na Fase 1</td></tr>
+      <tr><td><span class="st warn">API do IBGE mudar</span></td><td>Validar resposta; guardar JSON bruto; fallback de envio manual</td></tr>
+      <tr><td><span class="st warn">Hotspot do iPhone em 5 GHz</span></td><td>Instrução na ficha de campo (2,4 GHz) [G9]</td></tr>
+      <tr><td><span class="st warn">Licença GPL (esp32-xbee)</span></td><td>Uso interno ou reescrita; preferir MIT/Apache</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="fontes" style="border-bottom:0">
+  <span class="sec-num">14</span>
+  <h2>Fontes novas (acesso em 2026-10-04)</h2>
+  <ol class="src">
+    <li><b>G1</b>ESP-IDF <code>examples/peripherals/usb/device/tusb_msc</code> (MSC com SD; acesso exclusivo; ESP32-S3) e <code>tusb_ncm</code>. Commit 4d59230. <a href="https://github.com/espressif/esp-idf">esp-idf</a></li>
+    <li><b>G2</b>ESP-IDF <code>http_server/file_serving</code> (download/upload em SD), <code>captive_portal</code> (DNS + DHCP opção 114), <code>ws_echo_server</code>, <code>restful_server</code>.</li>
+    <li><b>G3</b>ESP-IDF <code>restful_server/main/idf_component.yml</code> (<code>espressif/mdns ^1.8.0</code>).</li>
+    <li><b>G4</b>ESP-IDF <code>esp_now.rst</code> (250 B v1, 1470 B v2, CCMP, 20 pares). <b>G4b</b> <code>ota.rst</code> (App Rollback) e <code>examples/system/ota</code>.</li>
+    <li><b>G5</b>IBGE, API do IBGE-PPP <span class="tag s">trecho de busca</span>. <a href="https://servicodados.ibge.gov.br/api/docs/ppp?versao=1">documentação</a></li>
+    <li><b>G6</b>IBGE, API da RBMC (relatorio, rinex2, rinex3/1s) <span class="tag s">trecho de busca</span>. <a href="https://servicodados.ibge.gov.br/api/docs/rbmc?versao=1">documentação</a></li>
+    <li><b>G7</b>rtkdata, SW Maps: NMEA over IP no Android e iOS <span class="tag s">trecho de busca</span>. <a href="https://docs.rtkdata.com/integration-hub/ntrip-clients-and-field-software/sw-maps">página</a></li>
+    <li><b>G8</b>SparkFun u-blox GNSS v3 3.1.15 (2026-08-28), MIT: <code>DataLoggingExample7_OpenLogESP32_SPI_SDIO</code>, <code>Example12_setStaticPosition</code>, <code>Example14_NTRIPServer</code>, <code>Example15–17_NTRIPClient</code>, <code>CallbackExample3_TIM_TM2</code>, VALGET/VALSET. <a href="https://github.com/sparkfun/SparkFun_u-blox_GNSS_v3">GitHub</a></li>
+    <li><b>G9</b>SparkFun RTK Everywhere v3.4, <code>docs/gis_software_ios.md</code> (TCP 2948; hotspot iOS em 2,4 GHz).</li>
+    <li><b>G10</b>ArduSimple, simpleRTK2B Pro (EXTINT e Timepulse no JST) <span class="tag s">trecho de busca</span>. <a href="https://www.ardusimple.com/product/simplertk2b-pro/">produto</a></li>
+    <li><b>G11</b>SparkFun RTK Everywhere v3.4, <code>docs/menu_radios.md</code> e <code>correction_transport.md</code> (ESP-NOW ~250 m, mesmo canal, ponto-multiponto).</li>
+    <li><b>G12</b>ESP-IDF <code>wifi-driver/overview.rst</code> (APSTA) e <code>system_time.rst</code> (<code>settimeofday()</code>, cliente SNTP).</li>
+    <li><b>G13</b>NRCan/IGS, Updates to the CSRS-PPP online service (2018): script automático sob pedido <span class="tag s">trecho de busca</span>. <a href="https://files.igs.org/pub/resource/pubs/workshop/2018/IGSWS-2018-PY04-05.pdf">PDF</a></li>
+    <li><b>F#</b>Fontes F1–F24 conforme o Plano de Gravação RAW (RTKLIB-EX: <code>decode_timtm2</code>, flag de evento 5, <code>str2str</code>; Integration Manual R13 §3.9.6, §3.10, §3.13.2, §3.14.2).</li>
+  </ol>
+  <h3>Fora de escopo (só listado)</h3>
+  <ul class="tight prose">
+    <li>Display e-ink/OLED no S3 para status sem celular.</li>
+    <li>Rádio LoRa para RTCM de longo alcance.</li>
+    <li>Painel web de frota num servidor do escritório.</li>
+    <li>Alertas pela internet (Telegram/MQTT) quando houver hotspot.</li>
+    <li>Conversão RINEX no próprio S3 (desaconselhada).</li>
+    <li>Integração direta com software de drone/SLAM.</li>
+  </ul>
+</section>
+<footer>Gerado a partir de <code>docs/automacoes-esp32s3.md</code> · LuftPlan · 2026-10-04</footer>
+</main>
+</div>
+
+<script>
+(function(){
+  var btns=[].slice.call(document.querySelectorAll('.fbtn')),cards=[].slice.call(document.querySelectorAll('#cat .ac')),count=document.getElementById('count');
+  function apply(f){var n=0;cards.forEach(function(c){var ok=f==='all'||(f==='medio'?c.dataset.r==='medio':c.dataset.l===f);c.hidden=!ok;if(ok)n++});count.textContent=n+' de '+cards.length;
+    btns.forEach(function(b){b.setAttribute('aria-pressed',b.dataset.f===f?'true':'false')});try{localStorage.setItem('auto-filter',f)}catch(e){}}
+  btns.forEach(function(b){b.addEventListener('click',function(){apply(b.dataset.f)})});
+  var saved='all';try{saved=localStorage.getItem('auto-filter')||'all'}catch(e){} apply(saved);
+})();
+</script>

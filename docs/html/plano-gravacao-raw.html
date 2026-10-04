@@ -1,0 +1,863 @@
+<title>Plano de Gravação RAW</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: caderno técnico de campo — trilho de índice à esquerda (desktop), coluna de leitura ~74ch, figuras e tabelas podem alargar */
+:root{
+  --bg:#f2f4f3; --surface:#ffffff; --surface-2:#e7ecea; --ink:#13201e; --ink-2:#465755; --muted:#6f7e7b; --line:#cdd6d3;
+  --accent:#0b6b6a; --accent-soft:#d5ebe9; --hot:#b94a14; --hot-soft:#f8e3d6; --series:#2a78d6; --series-soft:#cde2fb;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --f-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1514; --surface:#151f1e; --surface-2:#1c2928; --ink:#e6eeec; --ink-2:#a8b7b4; --muted:#83928f; --line:#2b3a38;
+  --accent:#43b6b0; --accent-soft:#163533; --hot:#f07c43; --hot-soft:#3a2216; --series:#3987e5; --series-soft:#17304f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1514; --surface:#151f1e; --surface-2:#1c2928; --ink:#e6eeec; --ink-2:#a8b7b4; --muted:#83928f; --line:#2b3a38;
+  --accent:#43b6b0; --accent-soft:#163533; --hot:#f07c43; --hot-soft:#3a2216; --series:#3987e5; --series-soft:#17304f; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;margin:0}
+.wrap{display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;max-width:1240px;margin:0 auto;padding-inline:24px;padding-block:28px 64px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:16px;padding-inline:16px}}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 20px);align-self:start;font-size:14px;max-height:calc(100vh - 40px);overflow:auto}
+nav.toc .brand{font-family:var(--f-display);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:13px;color:var(--accent);margin-bottom:10px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:t}
+nav.toc a{display:block;padding:5px 10px;border-left:2px solid var(--line);color:var(--ink-2);text-decoration:none}
+nav.toc a:hover,nav.toc a:focus-visible{border-left-color:var(--accent);color:var(--ink);background:var(--surface-2)}
+nav.toc .other{margin-top:16px;padding:10px;border:1px solid var(--line);border-radius:var(--r);font-size:13px;color:var(--ink-2)}
+nav.toc .other a{border:0;padding:0;color:var(--accent);display:inline;text-decoration:underline}
+@media (max-width:900px){nav.toc{position:static;max-height:none}nav.toc ol{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
+main{min-width:0}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.hero{padding-block:8px 28px;border-bottom:1px solid var(--line);margin-bottom:28px}
+.eyebrow{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.12em;font-size:13px;color:var(--accent);font-weight:600}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,5vw,52px);line-height:1.02;margin:6px 0 12px;text-wrap:balance;letter-spacing:-.005em}
+h2{font-family:var(--f-display);font-weight:650;font-size:30px;line-height:1.1;margin:0 0 14px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:600;font-size:21px;margin:26px 0 8px;letter-spacing:.01em}
+.lede{font-size:18px;color:var(--ink-2);max-width:72ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:16px;font-size:13px;color:var(--muted);font-family:var(--f-mono)}
+section{padding-block:30px;border-bottom:1px solid var(--line);scroll-margin-top:16px}
+section > p, .prose{max-width:74ch}
+.sec-num{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.06em;display:block;margin-bottom:4px}
+
+/* chips & tags */
+.tag{display:inline-block;font-family:var(--f-mono);font-size:11.5px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);background:var(--surface);white-space:nowrap;vertical-align:1px}
+.tag.h{border-color:var(--hot);color:var(--hot);background:var(--hot-soft)}
+.tag.a{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.tag.s{border-style:dashed}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;white-space:nowrap}
+.st::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+.st.good::before{background:var(--good)} .st.warn::before{background:var(--warn)} .st.serious::before{background:var(--serious)} .st.crit::before{background:var(--crit)}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:22px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.kpi b{display:block;font-family:var(--f-display);font-size:34px;line-height:1;font-weight:650;font-variant-numeric:tabular-nums}
+.kpi span{display:block;font-size:13.5px;color:var(--ink-2);margin-top:6px}
+
+/* callouts */
+.decision{background:var(--surface);border:1px solid var(--accent);border-radius:var(--r);padding:18px 20px;margin-block:18px}
+.decision h3{margin-top:0;color:var(--accent)}
+.note{border-left:3px solid var(--hot);background:var(--hot-soft);padding:10px 14px;border-radius:0 var(--r) var(--r) 0;margin-block:14px;max-width:80ch;font-size:15px}
+.note.info{border-left-color:var(--accent);background:var(--accent-soft)}
+ul.tight{margin:6px 0;padding-left:20px} ul.tight li{margin:3px 0}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;min-width:0}
+.card h4{font-family:var(--f-display);font-size:18px;margin:0 0 6px;font-weight:600}
+.card p{margin:4px 0;font-size:15px}
+
+/* tables */
+.tw{overflow-x:auto;margin-block:14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font-family:var(--f-display);font-weight:600;font-size:14px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-2);background:var(--surface-2);position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.rec td{background:var(--hot-soft)}
+code,kbd{font-family:var(--f-mono);font-size:.86em;background:var(--surface-2);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+pre{font-family:var(--f-mono);font-size:13px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;overflow-x:auto;line-height:1.45;margin-block:12px}
+pre code{background:none;padding:0;overflow-wrap:normal}
+
+/* figures */
+figure{margin:20px 0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+figure .scroll{overflow-x:auto}
+figure svg{display:block;width:100%;height:auto;min-width:560px;color:var(--ink)}
+figure.small svg{min-width:0}
+figcaption{font-size:14px;color:var(--ink-2);margin-top:10px;max-width:80ch}
+figcaption b{color:var(--ink)}
+/* svg classes */
+.d-box{fill:var(--surface);stroke:var(--ink-2);stroke-width:1.4}
+.d-box2{fill:var(--surface-2);stroke:var(--line);stroke-width:1.2}
+.d-acc{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.6}
+.d-hot{fill:var(--hot-soft);stroke:var(--hot);stroke-width:1.8}
+.d-ser{fill:var(--series-soft);stroke:var(--series);stroke-width:1.4}
+.d-line{stroke:var(--ink-2);stroke-width:1.5;fill:none}
+.d-line.acc{stroke:var(--accent);stroke-width:2}
+.d-line.hot{stroke:var(--hot);stroke-width:2.2}
+.d-line.ser{stroke:var(--series);stroke-width:2}
+.d-line.dash{stroke-dasharray:5 4}
+.d-line.x{stroke:var(--crit);stroke-width:2.4}
+.d-t{fill:var(--ink);font-family:var(--f-body);font-size:13px}
+.d-t.b{font-weight:700}
+.d-t.s{font-size:11.5px;fill:var(--ink-2)}
+.d-t.m{font-family:var(--f-mono);font-size:11px;fill:var(--ink-2)}
+.d-t.h{fill:var(--hot);font-weight:700}
+.d-t.a{fill:var(--accent);font-weight:700}
+.d-t.x{fill:var(--crit);font-weight:700}
+.d-t.ttl{font-family:var(--f-display);font-size:16px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;fill:var(--ink-2)}
+.d-mk{fill:var(--ink-2)} .d-mk.acc{fill:var(--accent)} .d-mk.hot{fill:var(--hot)} .d-mk.ser{fill:var(--series)}
+.d-grid{stroke:var(--line);stroke-width:1}
+.d-bar{fill:var(--series)}
+.d-bar:hover,.d-bar:focus{fill:var(--accent);outline:none}
+
+/* tooltip */
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--ink);color:var(--bg);font-size:13px;line-height:1.35;padding:7px 10px;border-radius:5px;max-width:280px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+
+/* steps / timeline */
+.steps{display:grid;gap:10px;counter-reset:s;margin:14px 0}
+.step{display:grid;grid-template-columns:54px minmax(0,1fr);gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.step .n{font-family:var(--f-display);font-size:26px;font-weight:700;color:var(--accent);line-height:1}
+.step .n small{display:block;font-family:var(--f-mono);font-size:10.5px;color:var(--muted);font-weight:400;letter-spacing:.04em;margin-top:4px}
+.step h4{margin:0 0 4px;font-family:var(--f-display);font-size:19px;font-weight:600}
+.step p{margin:3px 0;font-size:15px}
+.step .tests{margin-top:6px;display:flex;flex-wrap:wrap;gap:4px}
+
+/* filter bar */
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0 4px}
+.filters span{font-size:13px;color:var(--muted);margin-right:4px}
+.fbtn{font:inherit;font-size:14px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer}
+.fbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.fbtn:hover{border-color:var(--accent)}
+
+/* sources */
+ol.src{padding-left:0;list-style:none;display:grid;gap:8px;font-size:14px}
+ol.src li{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px 12px;overflow-wrap:anywhere}
+ol.src b{font-family:var(--f-mono);color:var(--accent);margin-right:6px}
+.legend{display:flex;flex-wrap:wrap;gap:10px 18px;font-size:13px;color:var(--ink-2);margin:8px 0}
+.legend i{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+footer{padding-block:28px;color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+html{scroll-behavior:smooth}
+
+.riskgrid{display:grid;grid-template-columns:90px repeat(3,minmax(0,1fr));gap:6px;margin:14px 0;font-size:14px}
+.riskgrid .ax{font-family:var(--f-display);text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2);display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;padding:6px}
+.riskgrid .cell{min-height:84px;border-radius:var(--r);padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;border:1px solid var(--line)}
+.riskgrid .lv1{background:var(--surface)} .riskgrid .lv2{background:var(--hot-soft)} .riskgrid .lv3{background:var(--hot-soft);border-color:var(--hot)}
+.rk{font-family:var(--f-mono);font-size:12px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--surface);border:1px solid var(--ink-2);color:var(--ink);cursor:default}
+.rk:hover,.rk:focus{border-color:var(--accent);outline:none;background:var(--accent-soft)}
+@media (max-width:560px){.riskgrid{grid-template-columns:54px repeat(3,minmax(0,1fr))}.riskgrid .ax{font-size:11px;padding:2px}}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Índice">
+  <div class="brand">LuftPlan · Base RTK</div>
+  <ol>
+    <li><a href="#resumo">Resumo executivo</a></li>
+    <li><a href="#perguntas">Perguntas em aberto</a></li>
+    <li><a href="#receptor">Receptor e portas</a></li>
+    <li><a href="#gravacao">Gravação local</a></li>
+    <li><a href="#base">Operação da base</a></li>
+    <li><a href="#pos">Pós-processamento</a></li>
+    <li><a href="#ntrip">NTRIP e apps</a></li>
+    <li><a href="#matriz">Matrizes comparativas</a></li>
+    <li><a href="#arquitetura">Arquitetura e configuração</a></li>
+    <li><a href="#plano">Plano de execução</a></li>
+    <li><a href="#testes">Testes</a></li>
+    <li><a href="#fluxo">Comandos de pós-processamento</a></li>
+    <li><a href="#riscos">Riscos</a></li>
+    <li><a href="#fontes">Fontes</a></li>
+    <li><a href="#fora">Fora de escopo</a></li>
+  </ol>
+  <div class="other">Documento complementar: <a href="https://claude.ai/artifact/M1xXEsCWk6W8cxTbdb4PXE">Automações ESP32-S3</a></div>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Análise técnica · simpleRTK2B (ZED-F9P) + ESP32-S3</div>
+  <h1>Gravação RAW na base RTK e pós-processamento PPP/PPK</h1>
+  <p class="lede">Como gravar UBX bruto localmente, sem depender de internet, mantendo intacto o fluxo atual com SW Maps e GNSS Master, e como transformar esses dados em coordenadas SIRGAS2000 com IBGE-PPP, CSRS-PPP e RTKLIB.</p>
+  <div class="meta"><span>LuftPlan · Curitiba/PR</span><span>v1.0 · 2026-10-04</span><span>Status: análise e plano (nada executado no equipamento)</span></div>
+  <div class="kpis" aria-label="Números-chave">
+    <div class="kpi"><b>~10 MB/h</b><span>UBX RAWX+SFRBX a 1 Hz (~240 MB/dia)</span></div>
+    <div class="kpi"><b>12 %</b><span>carga da UART1 a 230400 bps em 1 Hz</span></div>
+    <div class="kpi"><b>≥ 4 h</b><span>ocupação recomendada pelo IBGE para PPP</span></div>
+    <div class="kpi"><b>0</b><span>mudanças na ponte Bluetooth e nos apps</span></div>
+  </div>
+</header>
+
+<section id="resumo">
+  <span class="sec-num">01</span>
+  <h2>Resumo executivo</h2>
+  <div class="decision">
+    <h3>Recomendação: Arquitetura A1</h3>
+    <p class="prose">O <b>ESP32-S3 + cartão SD vira um gravador dedicado na UART1</b> do ZED-F9P. A <b>ponte Bluetooth atual fica intocada na UART2</b> (soquete XBee). O S3 grava <code>UBX-RXM-RAWX</code> + <code>UBX-RXM-SFRBX</code> + <code>UBX-NAV-PVT</code> a 1 Hz, com a UART1 a 230400 bps.</p>
+  </div>
+  <div class="cols">
+    <div class="card"><h4>Por que A1</h4><ul class="tight">
+      <li>O ESP32-S3 <b>não tem Bluetooth Classic</b> [F7]. Se substituísse a ponte, o SPP do Android quebraria.</li>
+      <li>Não precisa de RTC: o tempo GNSS vem em cada mensagem.</li>
+      <li>A vazão (~2,8 kB/s) é trivial para o SD.</li>
+      <li>Formatos abertos: UBX → RINEX com RTKLIB (BSD-2).</li></ul></div>
+    <div class="card"><h4>Pós-processamento da base</h4><ul class="tight">
+      <li><b>IBGE-PPP</b> como principal: entrega SIRGAS2000 época 2000,4 automaticamente [F15].</li>
+      <li><b>CSRS-PPP</b> como verificação independente.</li>
+      <li><b>PPK RTKLIB-EX</b> contra a RBMC (UFPR) em sessões curtas.</li>
+      <li>F9P + antena patch: PPP chega a "poucos cm" só com ≥ 2,5 h [F20].</li></ul></div>
+    <div class="card"><h4>Ganho rápido e alternativa</h4><ul class="tight">
+      <li>Sem hardware: RAWX/SFRBX só na RAM + "Log to file" do SW Maps [F18]. Exige HPG ≥ 1.30 [F2].</li>
+      <li>Mais robusto, com caster local: <b>RTKBase</b> (AGPL-3.0) num Raspberry Pi [F10].</li>
+      <li><span class="st serious">Principal risco</span>: antena ANN-MB-00 sem calibração ANTEX pública verificada.</li></ul></div>
+  </div>
+  <div class="note info"><b>Limitação da pesquisa.</b> O proxy da sessão bloqueou sites de fabricantes e órgãos públicos. Manuais u-blox, ESP-IDF, RTKLIB, RTKBase e pyubx2 foram lidos no original (cópias e código no GitHub). Dados de IBGE, NRCan, RBMC, SW Maps e artigos vieram de resumos de busca e estão marcados <span class="tag s">trecho de busca</span>. Marcadores: <span class="tag h">HIPÓTESE</span> = inferência a testar; <span class="tag">não verificado</span> = sem fonte primária.</div>
+</section>
+
+<section id="perguntas">
+  <span class="sec-num">02</span>
+  <h2>Perguntas em aberto</h2>
+  <p>Cada pergunta tem uma suposição adotada para o plano não travar. Responder estas perguntas é o primeiro passo (Fase 0).</p>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Pergunta</th><th>Por que importa</th><th>Suposição adotada</th></tr></thead>
+    <tbody>
+      <tr><td>Q1</td><td>Variante exata do RTK2B (Budget, Pro, V3, Lite)?</td><td>No Budget o soquete XBee é fixo na UART2; no Pro/V3 é selecionável [F5].</td><td>Budget: XBee = UART2; UART1 em TX1/RX1 e JST-GH.</td></tr>
+      <tr><td>Q2</td><td>Firmware do ZED (<code>UBX-MON-VER</code>)?</td><td>Antes do HPG 1.30 a UART2 não emite UBX [F2].</td><td>ZED-F9P-04B com HPG 1.32.</td></tr>
+      <tr><td>Q3</td><td>Qual é a ponte ESP32 atual, onde liga, baud e firmware?</td><td>Define o que não pode ser tocado e o protocolo dos celulares.</td><td>ArduSimple BT+BLE Bridge no XBee/UART2 a 115200 <span class="tag s">trecho de busca</span>.</td></tr>
+      <tr><td>Q4</td><td>Placa ESP32-S3 (devkit, flash, PSRAM)?</td><td>Pinagem e buffer. Com PSRAM octal, GPIO35–37 ficam ocupados <span class="tag h">HIPÓTESE</span>.</td><td>DevKitC-1 com PSRAM; SD fora de GPIO35–37.</td></tr>
+      <tr><td>Q5</td><td>Módulo SD e cartão (capacidade, classe)?</td><td>Módulos comuns são só SPI; o FAT do ESP-IDF vem sem exFAT [F8].</td><td>Módulo SPI; microSD SDHC 8–32 GB "high endurance", FAT32.</td></tr>
+      <tr><td>Q6</td><td>Antena e calibração?</td><td>PCO/PCV afetam PPP e PPK [F16].</td><td>ANN-MB-00 sem ANTEX <span class="tag">não verificado</span>.</td></tr>
+      <tr><td>Q7</td><td>Quantos receptores (só um, ou base + rover)?</td><td>Define se é preciso RTCM local agora.</td><td>Um receptor; RTCM local na Fase 7 (opcional).</td></tr>
+      <tr><td>Q8</td><td>Alimentação em campo?</td><td>Queda de energia é o maior risco ao SD.</td><td>Power bank USB 5 V.</td></tr>
+      <tr><td>Q9</td><td>Tolerância de entrega, referencial e tipo de altitude?</td><td>Define duração das sessões e critérios de aceite.</td><td>SIRGAS2000 (2000,4), UTM 22S, altitude normal (hgeoHNOR2020) [F17].</td></tr>
+      <tr><td>Q10</td><td>Precisa de RTK local sem internet já na 1ª fase?</td><td>Exige enlace de RTCM.</td><td>Desejável, não obrigatório.</td></tr>
+      <tr><td>Q11</td><td>Sistema operacional do PC de processamento?</td><td>Binários RTKLIB e scripts.</td><td>Windows ou Linux + Python 3.</td></tr>
+      <tr><td>Q12</td><td>Permanência típica da base numa obra?</td><td>PPP (≥ 4 h) versus PPK.</td><td>4–8 h por dia de campo.</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="receptor">
+  <span class="sec-num">03</span>
+  <h2>Receptor, portas e onde ligar cada coisa</h2>
+  <p>Todas as variantes simpleRTK2B usam o <b>u-blox ZED-F9P</b> [F5]. O receptor tem log interno em flash, mas <b>só de posições</b> (máx. 1 Hz) e strings, nunca de RAWX/SFRBX [F2 §3.6]. Por isso <b>o gravador externo é obrigatório</b>.</p>
+
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 370" role="img" aria-label="Arquitetura A1: a ponte Bluetooth continua na UART2 conversando com o celular; o ESP32-S3 recebe UBX pela UART1 e grava no cartão SD; o USB fica livre para o PC.">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-mk"/></marker>
+        <marker id="arh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-mk hot"/></marker>
+        <marker id="ara" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="d-mk acc"/></marker>
+      </defs>
+      <!-- antena -->
+      <path d="M40 150 L80 150 L60 120 Z" class="d-box"/>
+      <line x1="60" y1="150" x2="60" y2="190" class="d-line"/>
+      <text x="60" y="210" text-anchor="middle" class="d-t b">Antena</text>
+      <text x="60" y="226" text-anchor="middle" class="d-t s">L1/L2 · SMA</text>
+      <line x1="60" y1="190" x2="150" y2="190" class="d-line" marker-end="url(#ar)"/>
+      <!-- receptor -->
+      <rect x="150" y="30" width="300" height="310" rx="8" class="d-box2"/>
+      <text x="170" y="56" class="d-t ttl">simpleRTK2B</text>
+      <text x="170" y="76" class="d-t s">u-blox ZED-F9P · HPG 1.32 (suposto)</text>
+      <rect x="320" y="92" width="130" height="50" rx="5" class="d-acc"/>
+      <text x="385" y="113" text-anchor="middle" class="d-t b">UART2</text>
+      <text x="385" y="130" text-anchor="middle" class="d-t s">soquete XBee</text>
+      <rect x="320" y="172" width="130" height="50" rx="5" class="d-hot"/>
+      <text x="385" y="193" text-anchor="middle" class="d-t b">UART1</text>
+      <text x="385" y="210" text-anchor="middle" class="d-t s">TX1/RX1 · JST-GH</text>
+      <rect x="320" y="262" width="130" height="50" rx="5" class="d-box"/>
+      <text x="385" y="283" text-anchor="middle" class="d-t b">USB</text>
+      <text x="385" y="300" text-anchor="middle" class="d-t s">"POWER+GPS"</text>
+      <text x="170" y="250" class="d-t m">IOREF = 3,3 V</text>
+      <text x="170" y="266" class="d-t m">GND comum</text>
+      <!-- ponte BT -->
+      <rect x="560" y="80" width="150" height="74" rx="6" class="d-acc"/>
+      <text x="635" y="110" text-anchor="middle" class="d-t b">Ponte BT atual</text>
+      <text x="635" y="128" text-anchor="middle" class="d-t s">ESP32 clássico</text>
+      <text x="635" y="144" text-anchor="middle" class="d-t a">intocada</text>
+      <line x1="450" y1="108" x2="556" y2="108" class="d-line acc" marker-end="url(#ara)"/>
+      <text x="503" y="101" text-anchor="middle" class="d-t m">NMEA</text>
+      <line x1="560" y1="128" x2="454" y2="128" class="d-line acc" marker-end="url(#ara)"/>
+      <text x="503" y="146" text-anchor="middle" class="d-t m">RTCM</text>
+      <!-- celular -->
+      <rect x="800" y="56" width="140" height="120" rx="14" class="d-box"/>
+      <text x="870" y="96" text-anchor="middle" class="d-t b">Celular</text>
+      <text x="870" y="114" text-anchor="middle" class="d-t s">SW Maps</text>
+      <text x="870" y="130" text-anchor="middle" class="d-t s">GNSS Master</text>
+      <text x="870" y="156" text-anchor="middle" class="d-t m">NTRIP RBMC-IP</text>
+      <line x1="710" y1="104" x2="796" y2="104" class="d-line acc" marker-end="url(#ara)" marker-start="url(#ara)"/>
+      <text x="753" y="96" text-anchor="middle" class="d-t m">SPP/BLE</text>
+      <!-- S3 -->
+      <rect x="560" y="170" width="150" height="74" rx="6" class="d-hot"/>
+      <text x="635" y="198" text-anchor="middle" class="d-t b">ESP32-S3</text>
+      <text x="635" y="216" text-anchor="middle" class="d-t s">gravador dedicado</text>
+      <text x="635" y="233" text-anchor="middle" class="d-t m">ring 64–256 KB</text>
+      <line x1="450" y1="190" x2="556" y2="190" class="d-line hot" marker-end="url(#arh)"/>
+      <text x="503" y="182" text-anchor="middle" class="d-t m">UBX · 230400</text>
+      <line x1="560" y1="214" x2="454" y2="214" class="d-line dash" marker-end="url(#ar)"/>
+      <text x="503" y="232" text-anchor="middle" class="d-t m">CFG (opc.)</text>
+      <!-- SD -->
+      <path d="M810 182 h100 l20 20 v42 h-120 z" class="d-box"/>
+      <text x="870" y="210" text-anchor="middle" class="d-t b">microSD</text>
+      <text x="870" y="227" text-anchor="middle" class="d-t s">FAT32 · 1 arq./h</text>
+      <line x1="710" y1="207" x2="806" y2="207" class="d-line hot" marker-end="url(#arh)"/>
+      <text x="758" y="199" text-anchor="middle" class="d-t m">blocos 4–16 KB</text>
+      <!-- PC -->
+      <rect x="560" y="262" width="150" height="56" rx="6" class="d-box"/>
+      <text x="635" y="286" text-anchor="middle" class="d-t b">PC</text>
+      <text x="635" y="304" text-anchor="middle" class="d-t s">config · backup</text>
+      <line x1="450" y1="288" x2="556" y2="288" class="d-line" marker-end="url(#ar)" marker-start="url(#ar)"/>
+      <text x="503" y="280" text-anchor="middle" class="d-t m">u-center</text>
+      <text x="760" y="294" class="d-t m">ubxsave · PyGPSClient</text>
+    </svg>
+    </div>
+    <figcaption><b>Arquitetura A1.</b> O caminho verde (UART2 ↔ ponte ↔ celular) é o uso atual e não muda. O caminho laranja é novo: a UART1 envia UBX ao S3, que grava no SD. A linha tracejada é opcional (o S3 envia configuração ao receptor só na camada RAM).</figcaption>
+  </figure>
+
+  <h3>Fatos do receptor</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Item</th><th>Valor</th><th>Fonte</th></tr></thead>
+    <tbody>
+      <tr><td>Sinais (F9P-01B/02B/04B)</td><td>GPS L1C/A+L2C · GLONASS L1OF+L2OF · Galileo E1B/C+E5b · BeiDou B1I+B2I · QZSS L1C/A+L2C · SBAS L1C/A</td><td>Integration Manual R13 §3.1.2 [F2]</td></tr>
+      <tr><td>BeiDou no Brasil</td><td>BDS-3 não transmite B2I → no F9P-04B o BeiDou aqui fica quase só B1I (monofrequência)</td><td>[F21] <span class="tag s">trecho de busca</span> + <span class="tag h">HIPÓTESE</span></td></tr>
+      <tr><td>Taxa máxima RAW</td><td>20 Hz com 4 GNSS; 25 Hz com menos constelações. RTK: 8 Hz (4 GNSS) a 20 Hz (só GPS)</td><td>Datasheet 02B R03, Tab. 2 [F3]</td></tr>
+      <tr><td>Mensagens RAW</td><td><code>RXM-RAWX</code> payload 16 + 32·numMeas · <code>RXM-SFRBX</code> payload 8 + 4·numWords</td><td>pyubx2 1.3.8 [F11]; manual §3.15 [F2]</td></tr>
+      <tr><td>Firmware atual</td><td>F9P-04B: HPG 1.32 · F9P-05B: HPG 1.51 · F9P-15B: HPG L1L5 1.40</td><td>[F2], [F4] <span class="tag s">trecho de busca</span></td></tr>
+      <tr><td>Precisão RTK (spec)</td><td>0,01 m + 1 ppm CEP (H); 0,01 m + 1 ppm R50 (V)</td><td>[F3]</td></tr>
+      <tr><td>UART2 e UBX</td><td>UBX out só a partir do HPG 1.30; UBX in padrão a partir do 1.32. Não usar a UART2 como única interface com o host.</td><td>[F2 §3.1.3]</td></tr>
+    </tbody></table></div>
+
+  <h3>Mapa de portas (simpleRTK2B Budget)</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Porta</th><th>Onde aparece</th><th>Uso hoje</th><th>Uso proposto</th></tr></thead>
+    <tbody>
+      <tr class="rec"><td><b>UART1</b></td><td>Pinos TX1/RX1 e JST-GH; exige IOREF ligado a 3,3 V [F5]</td><td>Livre</td><td><b>Gravador ESP32-S3</b></td></tr>
+      <tr><td>UART2</td><td>Soquete XBee e TX2/RX2 [F5]</td><td>Ponte BT (NMEA out / RTCM in)</td><td>Não mexer</td></tr>
+      <tr><td>USB</td><td>"POWER+GPS" [F5]</td><td>Configuração no PC</td><td>Configuração, backup, firmware (com aprovação)</td></tr>
+      <tr><td>SPI/I2C</td><td>SPI exige D_SEL=0, que desliga a UART1 [F3]</td><td>—</td><td>Não usar</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="gravacao">
+  <span class="sec-num">04</span>
+  <h2>Gravação local: vazão, buffer e Bluetooth</h2>
+  <p>Premissa <span class="tag h">HIPÓTESE</span>: céu aberto em Curitiba, ~60 sinais por época (faixa 40–80). RAWX por época = 8 + 16 + 32·N bytes. SFRBX ≈ 0,8 kB/s, independente da taxa de medição.</p>
+
+  <figure>
+    <div class="scroll"><svg id="thr" viewBox="0 0 760 360" role="img" aria-label="Vazão UBX por taxa de medição comparada à capacidade da UART. A 1 Hz a vazão é 2,8 kB/s, bem abaixo dos 23 kB/s de 230400 bps; a 5 Hz chega a 10,5 kB/s, no limite de 115200 bps."></svg></div>
+    <figcaption><b>A base a 1 Hz cabe com folga em 230400 bps.</b> Barras: vazão total com N = 60 sinais. Traço vertical: faixa de N = 40 a 80. Linhas tracejadas: capacidade útil de cada baud (8N1). Passe o mouse sobre as barras para ver os valores.</figcaption>
+  </figure>
+  <div class="tw"><table>
+    <thead><tr><th>N sinais</th><th>Taxa</th><th class="num">Total (kB/s)</th><th class="num">MB/h</th><th class="num">@115200</th><th class="num">@230400</th><th class="num">@460800</th></tr></thead>
+    <tbody>
+      <tr class="rec"><td>60</td><td><b>1 Hz</b></td><td class="num"><b>2,8</b></td><td class="num"><b>9,9</b></td><td class="num">24 %</td><td class="num"><b>12 %</b></td><td class="num">6 %</td></tr>
+      <tr><td>60</td><td>2 Hz</td><td class="num">4,7</td><td class="num">16,9</td><td class="num">41 %</td><td class="num">20 %</td><td class="num">10 %</td></tr>
+      <tr><td>60</td><td>5 Hz</td><td class="num">10,5</td><td class="num">37,9</td><td class="num"><span class="st crit">91 %</span></td><td class="num">46 %</td><td class="num">23 %</td></tr>
+      <tr><td>60</td><td>10 Hz</td><td class="num">20,3</td><td class="num">72,9</td><td class="num">176 %</td><td class="num">88 %</td><td class="num">44 %</td></tr>
+      <tr><td>80</td><td>1 Hz</td><td class="num">3,4</td><td class="num">12,2</td><td class="num">29 %</td><td class="num">15 %</td><td class="num">7 %</td></tr>
+      <tr><td>80</td><td>5 Hz</td><td class="num">13,7</td><td class="num">49,4</td><td class="num">119 %</td><td class="num">60 %</td><td class="num">30 %</td></tr>
+    </tbody></table></div>
+  <div class="note">Se a banda faltar, o próprio receptor descarta mensagens ("new messages to be sent will be dropped") [F2 §3.8]. Monitorar com <code>UBX-MON-COMMS</code>. O SD (SDSPI até 20 MHz; SDMMC até 40 MHz no S3 [F8]) tem folga de ordens de grandeza; o risco real é a <b>latência</b> de pausas internas do cartão <span class="tag h">HIPÓTESE</span>, resolvida com buffer.</div>
+
+  <h3>Projeto do firmware gravador</h3>
+  <div class="cols">
+    <div class="card"><h4>Recepção</h4><p>Driver <code>uart_driver_install</code> com ring ≥ 32 KB. Eventos <code>UART_FIFO_OVF</code> e <code>UART_BUFFER_FULL</code> monitorados [F8]. FIFO de hardware de 128 B: tarefa de RX com prioridade alta. DMA (UHCI) disponível se necessário.</p></div>
+    <div class="card"><h4>Buffer e escrita</h4><p>Ring de 64–256 KB (PSRAM): 64 KB cobrem ~23 s de travamento do SD. Escrita em blocos de 4–16 KB; <code>f_sync</code> a cada 10 s e na rotação. Não usar <code>FATFS_IMMEDIATE_FSYNC</code> [F8].</p></div>
+    <div class="card"><h4>Arquivos e tempo</h4><p>Um arquivo por hora (~10 MB), nome UTC vindo do <code>NAV-PVT</code>, ex.: <code>LPB1_20261004_1400.ubx</code>. Sem RTC: RAWX traz <code>rcvTow</code>, <code>week</code>, <code>leapS</code> [F11]. FAT32 (exFAT desativado no ESP-IDF [F8]).</p></div>
+    <div class="card"><h4>Integridade e energia</h4><p>Grava todos os bytes; parser leve só conta mensagens e erros. CSV de saúde por minuto. UBX é auto-sincronizável: arquivo truncado continua convertível <span class="tag h">HIPÓTESE</span>. Supervisor de tensão fecha o arquivo em queda.</p></div>
+  </div>
+
+  <h3>Bluetooth no ESP32-S3</h3>
+  <p>A tabela oficial do ESP-IDF diz: <b>ESP32-S3 · Bluetooth Classic: N · Bluetooth LE: Y</b> [F7]. iPhone só usa BLE (a Apple não suporta SPP fora do MFi) [F12]. No Android, SPP é o caminho comum e há relatos de desconexões do SW Maps via BLE [F19] <span class="tag s">trecho de busca</span>.</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 300" role="img" aria-label="Comparação: em A1 a ponte clássica continua atendendo Android por SPP e iPhone por BLE, e o S3 só grava. Em A2 o S3 substitui a ponte e o Android perde o SPP.">
+      <defs>
+        <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-mk"/></marker>
+        <marker id="ar2h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-mk hot"/></marker>
+      </defs>
+      <rect x="6" y="6" width="462" height="288" rx="8" class="d-hot" style="fill:none"/>
+      <text x="24" y="34" class="d-t ttl">A1 · recomendada</text>
+      <rect x="24" y="110" width="96" height="80" rx="6" class="d-box2"/><text x="72" y="155" text-anchor="middle" class="d-t b">ZED-F9P</text>
+      <rect x="170" y="62" width="130" height="54" rx="6" class="d-acc"/><text x="235" y="86" text-anchor="middle" class="d-t b">Ponte clássica</text><text x="235" y="104" text-anchor="middle" class="d-t s">SPP + BLE</text>
+      <line x1="120" y1="130" x2="166" y2="96" class="d-line acc" marker-end="url(#ar2)"/><text x="128" y="104" class="d-t m">UART2</text>
+      <rect x="170" y="190" width="130" height="54" rx="6" class="d-hot"/><text x="235" y="214" text-anchor="middle" class="d-t b">ESP32-S3</text><text x="235" y="232" text-anchor="middle" class="d-t s">só grava → SD</text>
+      <line x1="120" y1="170" x2="166" y2="212" class="d-line hot" marker-end="url(#ar2h)"/><text x="128" y="206" class="d-t m">UART1</text>
+      <rect x="350" y="50" width="100" height="34" rx="8" class="d-box"/><text x="400" y="72" text-anchor="middle" class="d-t">Android</text>
+      <rect x="350" y="96" width="100" height="34" rx="8" class="d-box"/><text x="400" y="118" text-anchor="middle" class="d-t">iPhone</text>
+      <line x1="300" y1="80" x2="346" y2="68" class="d-line acc" marker-end="url(#ar2)"/><text x="306" y="64" class="d-t a">SPP ✓</text>
+      <line x1="300" y1="100" x2="346" y2="112" class="d-line acc" marker-end="url(#ar2)"/><text x="306" y="128" class="d-t a">BLE ✓</text>
+      <text x="24" y="276" class="d-t s">Fluxo atual intacto. Bluetooth e gravação em chips separados.</text>
+
+      <rect x="492" y="6" width="462" height="288" rx="8" class="d-box" style="fill:none"/>
+      <text x="510" y="34" class="d-t ttl">A2 · S3 substitui a ponte</text>
+      <rect x="510" y="110" width="96" height="80" rx="6" class="d-box2"/><text x="558" y="155" text-anchor="middle" class="d-t b">ZED-F9P</text>
+      <rect x="660" y="110" width="140" height="80" rx="6" class="d-box"/><text x="730" y="138" text-anchor="middle" class="d-t b">ESP32-S3</text><text x="730" y="156" text-anchor="middle" class="d-t s">BLE + SD + Wi-Fi</text><text x="730" y="174" text-anchor="middle" class="d-t s">mesmo rádio</text>
+      <line x1="606" y1="150" x2="656" y2="150" class="d-line" marker-end="url(#ar2)"/><text x="612" y="142" class="d-t m">UART2</text>
+      <rect x="840" y="80" width="100" height="34" rx="8" class="d-box"/><text x="890" y="102" text-anchor="middle" class="d-t">Android</text>
+      <rect x="840" y="160" width="100" height="34" rx="8" class="d-box"/><text x="890" y="182" text-anchor="middle" class="d-t">iPhone</text>
+      <line x1="800" y1="135" x2="836" y2="100" class="d-line x dash"/><line x1="810" y1="108" x2="826" y2="124" class="d-line x"/><line x1="826" y1="108" x2="810" y2="124" class="d-line x"/>
+      <text x="770" y="86" class="d-t x">SPP ✗</text>
+      <line x1="800" y1="165" x2="836" y2="176" class="d-line" marker-end="url(#ar2)"/><text x="806" y="196" class="d-t s">BLE ✓</text>
+      <text x="510" y="252" class="d-t s">Android passa a depender de BLE (relatos de instabilidade).</text>
+      <text x="510" y="276" class="d-t s">Wi-Fi e BLE dividem o rádio por time-slicing [F8].</text>
+    </svg>
+    </div>
+    <figcaption><b>O que muda entre A1 e A2.</b> A diferença é uma única aresta: o SPP para Android. A1 a preserva; A2 a remove e concentra BLE, Wi-Fi e SD no mesmo chip. Por isso A2 só seria aceitável após o teste T18.</figcaption>
+  </figure>
+
+  <h3>Wi-Fi local e configuração reproduzível</h3>
+  <div class="cols">
+    <div class="card"><h4>softAP + HTTP</h4><p>Rotas <code>/status</code>, <code>/files</code>, <code>/download?f=</code>, <code>/cfg</code> (só leitura). WPA2. Arquivos grandes: tirar o cartão é mais robusto. Download concorre pelo SD: mutex e prioridade menor <span class="tag h">HIPÓTESE</span>.</p></div>
+    <div class="card"><h4>Configuração versionada</h4><p><code>CFG-VALSET</code> com camadas RAM/BBR/Flash [F2]. Aplicar em RAM → validar → gravar em Flash só com aprovação. Arquivo <code>KEY,valor</code> (formato RTKBase [F10]) no git; backup e restauração com <code>ubxsave</code>, <code>ubxload</code>, <code>ubxcompare</code> (pyubxutils, BSD-3) [F13].</p></div>
+  </div>
+</section>
+
+<section id="base">
+  <span class="sec-num">05</span>
+  <h2>Operação da base</h2>
+  <p>O RAW gravado é o mesmo em survey-in ou em modo fixo. O modo <code>CFG-TMODE-*</code> afeta solução e RTCM, não as observações <span class="tag h">HIPÓTESE</span> (teste T16). A base em survey-in não deve receber RTCM [F2].</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 230" role="img" aria-label="Dois fluxos: em obra nova a base faz survey-in, os pontos RTK saem deslocados, o RAW vai para PPP e os pontos são transladados por delta; em revisita a coordenada PPP já guardada põe a base em modo fixo.">
+      <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-mk"/></marker></defs>
+      <text x="10" y="22" class="d-t ttl">Obra nova</text>
+      <rect x="10" y="36" width="150" height="56" rx="6" class="d-box"/><text x="85" y="60" text-anchor="middle" class="d-t b">Survey-in</text><text x="85" y="78" text-anchor="middle" class="d-t s">erro de metro</text>
+      <rect x="200" y="36" width="160" height="56" rx="6" class="d-box"/><text x="280" y="60" text-anchor="middle" class="d-t b">Pontos RTK</text><text x="280" y="78" text-anchor="middle" class="d-t s">geometria certa, deslocada</text>
+      <rect x="400" y="36" width="150" height="56" rx="6" class="d-hot"/><text x="475" y="60" text-anchor="middle" class="d-t b">RAW → PPP</text><text x="475" y="78" text-anchor="middle" class="d-t s">≥ 4 h</text>
+      <rect x="590" y="36" width="170" height="56" rx="6" class="d-acc"/><text x="675" y="60" text-anchor="middle" class="d-t b">Δ = PPP − survey-in</text><text x="675" y="78" text-anchor="middle" class="d-t s">translação</text>
+      <rect x="800" y="36" width="150" height="56" rx="6" class="d-box"/><text x="875" y="60" text-anchor="middle" class="d-t b">Pontos corrigidos</text><text x="875" y="78" text-anchor="middle" class="d-t s">SIRGAS2000</text>
+      <line x1="160" y1="64" x2="196" y2="64" class="d-line" marker-end="url(#ar3)"/><line x1="360" y1="64" x2="396" y2="64" class="d-line" marker-end="url(#ar3)"/><line x1="550" y1="64" x2="586" y2="64" class="d-line" marker-end="url(#ar3)"/><line x1="760" y1="64" x2="796" y2="64" class="d-line" marker-end="url(#ar3)"/>
+      <text x="10" y="142" class="d-t ttl">Revisita</text>
+      <rect x="10" y="156" width="190" height="56" rx="6" class="d-acc"/><text x="105" y="180" text-anchor="middle" class="d-t b">Coordenada PPP</text><text x="105" y="198" text-anchor="middle" class="d-t s">arquivo da obra</text>
+      <rect x="240" y="156" width="220" height="56" rx="6" class="d-box"/><text x="350" y="180" text-anchor="middle" class="d-t b">CFG-TMODE-MODE=FIXED</text><text x="350" y="198" text-anchor="middle" class="d-t s">aviso se erro &gt; ~50 m [F2]</text>
+      <rect x="500" y="156" width="200" height="56" rx="6" class="d-box"/><text x="600" y="180" text-anchor="middle" class="d-t b">RTCM 1005 + MSM4</text><text x="600" y="198" text-anchor="middle" class="d-t s">+ 1230</text>
+      <rect x="740" y="156" width="210" height="56" rx="6" class="d-box"/><text x="845" y="180" text-anchor="middle" class="d-t b">Rover já no referencial</text><text x="845" y="198" text-anchor="middle" class="d-t s">RAW segue gravando</text>
+      <line x1="200" y1="184" x2="236" y2="184" class="d-line" marker-end="url(#ar3)"/><line x1="460" y1="184" x2="496" y2="184" class="d-line" marker-end="url(#ar3)"/><line x1="700" y1="184" x2="736" y2="184" class="d-line" marker-end="url(#ar3)"/>
+    </svg>
+    </div>
+    <figcaption><b>Survey-in ou coordenada fixa.</b> Em obra nova, o erro de metro do survey-in é sistemático e removido depois pela translação Δ (prática comum <span class="tag h">HIPÓTESE</span>, teste T17). Na revisita, o modo fixo usa a coordenada PPP guardada.</figcaption>
+  </figure>
+
+  <h3>RAW + RTCM ao mesmo tempo</h3>
+  <p>É possível. RTCM recomendado para base padrão [F2 §3.1.5.5.3]: <code>1005</code>, MSM4 <code>1074/1084/1094/1124</code> e <code>1230</code>. Regras: mesma taxa para todas as observações; não misturar MSM4 com MSM7; configuração idêntica se o RTCM sair em várias portas [F2].</p>
+  <div class="tw"><table>
+    <thead><tr><th>Enlace sem internet</th><th>Viabilidade</th><th>Observação</th></tr></thead>
+    <tbody>
+      <tr><td>S3: softAP + caster NTRIP/TCP</td><td><span class="st warn">Viável</span> para poucos clientes <span class="tag h">HIPÓTESE</span>; o esp32-xbee já tem caster em ESP32 [F9]</td><td>Rover entra no Wi-Fi da base; SW Maps em <code>192.168.4.1:2101</code>. Alcance limitado. Código GPL-3.0.</td></tr>
+      <tr><td>RTKBase (Pi)</td><td><span class="st good">Comprovado</span> [F10]</td><td>Caster local, servidor RTCM, gravação RAW, RINEX e web. Gera RTCM a partir do UBX com <code>str2str</code>.</td></tr>
+      <tr><td>Rádio no soquete XBee</td><td><span class="st crit">Conflita</span> com a ponte BT</td><td>Hardware novo, fora de escopo.</td></tr>
+      <tr><td><code>pygnssutils gnssserver</code></td><td><span class="st good">Bancada</span></td><td>Socket server/caster simples em Python (BSD-3) [F13].</td></tr>
+    </tbody></table></div>
+
+  <h3>Metadados obrigatórios</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Item</th><th>Por quê</th><th>Onde vai</th></tr></thead>
+    <tbody>
+      <tr><td>Nome/código do ponto; fotos do marco e da montagem</td><td>Rastreabilidade</td><td><code>-hm</code>/<code>-hn</code></td></tr>
+      <tr><td><b>Altura da antena</b>: vertical ou inclinada, até qual ponto (ARP), medida no início e no fim</td><td>Erro de altura vai direto para a cota</td><td><code>-hd h/e/n</code></td></tr>
+      <tr><td>Modelo da antena + radome no padrão IGS (20 caracteres)</td><td>Nome diferente do IGS = sem correção PCO/PCV [F15, F16]</td><td><code>-ha num/tipo</code></td></tr>
+      <tr><td>Receptor, série e firmware (<code>MON-VER</code>)</td><td>Rastreabilidade</td><td><code>-hr num/tipo/versão</code></td></tr>
+      <tr><td>Início e fim (UTC), duração, intervalo, interrupções</td><td>Auditoria e duração mínima</td><td>Ficha + CSV de saúde</td></tr>
+      <tr><td>Obstruções e multicaminho; operador; hash da configuração</td><td>Qualidade e reprodutibilidade</td><td>Ficha / <code>-ho</code></td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="pos">
+  <span class="sec-num">06</span>
+  <h2>Pós-processamento</h2>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 980 330" role="img" aria-label="Fluxo de pós-processamento: arquivos UBX são concatenados e convertidos pelo convbin em RINEX 2.11 para o IBGE-PPP e RINEX 3.04 para CSRS-PPP e PPK com RBMC; as três soluções são comparadas e a altitude é convertida com hgeoHNOR2020.">
+      <defs><marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-mk"/></marker>
+      <marker id="ar4h" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-mk hot"/></marker></defs>
+      <rect x="10" y="140" width="110" height="56" rx="6" class="d-box"/><text x="65" y="164" text-anchor="middle" class="d-t b">.ubx horários</text><text x="65" y="182" text-anchor="middle" class="d-t s">+ ficha</text>
+      <rect x="150" y="140" width="100" height="56" rx="6" class="d-box"/><text x="200" y="164" text-anchor="middle" class="d-t b">concatena</text><text x="200" y="182" text-anchor="middle" class="d-t s">por sessão</text>
+      <rect x="280" y="140" width="110" height="56" rx="6" class="d-acc"/><text x="335" y="164" text-anchor="middle" class="d-t b">convbin</text><text x="335" y="182" text-anchor="middle" class="d-t s">RTKLIB-EX 2.5.1</text>
+      <line x1="120" y1="168" x2="146" y2="168" class="d-line" marker-end="url(#ar4)"/><line x1="250" y1="168" x2="276" y2="168" class="d-line" marker-end="url(#ar4)"/>
+      <!-- row 1 IBGE -->
+      <rect x="430" y="30" width="140" height="56" rx="6" class="d-box"/><text x="500" y="54" text-anchor="middle" class="d-t b">RINEX 2.11</text><text x="500" y="72" text-anchor="middle" class="d-t s">GPS+GLO · 30 s</text>
+      <rect x="600" y="30" width="130" height="56" rx="6" class="d-hot"/><text x="665" y="54" text-anchor="middle" class="d-t b">IBGE-PPP</text><text x="665" y="72" text-anchor="middle" class="d-t s">principal</text>
+      <rect x="760" y="30" width="200" height="56" rx="6" class="d-box"/><text x="860" y="54" text-anchor="middle" class="d-t b">SIRGAS2000 · 2000,4</text><text x="860" y="72" text-anchor="middle" class="d-t s">+ ITRF na época</text>
+      <path d="M390 160 C410 160 410 58 426 58" class="d-line hot" marker-end="url(#ar4h)"/>
+      <line x1="570" y1="58" x2="596" y2="58" class="d-line hot" marker-end="url(#ar4h)"/><line x1="730" y1="58" x2="756" y2="58" class="d-line hot" marker-end="url(#ar4h)"/>
+      <!-- row 2 CSRS -->
+      <rect x="430" y="140" width="140" height="56" rx="6" class="d-box"/><text x="500" y="164" text-anchor="middle" class="d-t b">RINEX 3.04</text><text x="500" y="182" text-anchor="middle" class="d-t s">multi-GNSS</text>
+      <rect x="600" y="140" width="130" height="56" rx="6" class="d-box"/><text x="665" y="164" text-anchor="middle" class="d-t b">CSRS-PPP</text><text x="665" y="182" text-anchor="middle" class="d-t s">controle</text>
+      <rect x="760" y="140" width="200" height="56" rx="6" class="d-box"/><text x="860" y="164" text-anchor="middle" class="d-t b">ITRF2020 (época)</text><text x="860" y="182" text-anchor="middle" class="d-t s">compara ITRF × ITRF</text>
+      <line x1="390" y1="168" x2="426" y2="168" class="d-line" marker-end="url(#ar4)"/><line x1="570" y1="168" x2="596" y2="168" class="d-line" marker-end="url(#ar4)"/><line x1="730" y1="168" x2="756" y2="168" class="d-line" marker-end="url(#ar4)"/>
+      <!-- row 3 PPK -->
+      <rect x="430" y="250" width="140" height="56" rx="6" class="d-ser"/><text x="500" y="274" text-anchor="middle" class="d-t b">RBMC (UFPR…)</text><text x="500" y="292" text-anchor="middle" class="d-t s">RINEX 15 s / 1 s</text>
+      <rect x="600" y="250" width="130" height="56" rx="6" class="d-box"/><text x="665" y="274" text-anchor="middle" class="d-t b">rnx2rtkp</text><text x="665" y="292" text-anchor="middle" class="d-t s">PPK estático</text>
+      <rect x="760" y="250" width="200" height="56" rx="6" class="d-box"/><text x="860" y="274" text-anchor="middle" class="d-t b">SIRGAS2000</text><text x="860" y="292" text-anchor="middle" class="d-t s">via coordenada da RBMC</text>
+      <path d="M390 176 C410 176 410 270 426 270" class="d-line" marker-end="url(#ar4)"/>
+      <line x1="570" y1="278" x2="596" y2="278" class="d-line" marker-end="url(#ar4)"/><line x1="730" y1="278" x2="756" y2="278" class="d-line" marker-end="url(#ar4)"/>
+      <text x="398" y="230" class="d-t m">rover</text>
+    </svg>
+    </div>
+    <figcaption><b>Três soluções independentes da mesma sessão.</b> IBGE-PPP entrega o referencial oficial direto; CSRS-PPP confere em ITRF contra a saída ITRF do IBGE; PPK com RBMC é 100 % local. Depois: comparar ΔH/ΔV, converter h → altitude normal com hgeoHNOR2020 [F17] e projetar em UTM 22S (EPSG:31982).</figcaption>
+  </figure>
+
+  <h3>Quanto tempo ocupar</h3>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 960 250" role="img" aria-label="Régua de duração de 0 a 8 horas: PPP-AR do CSRS v3 a partir de cerca de 45 minutos, PPK estático em linha curta com poucos centímetros em 1 hora, PPP com F9P e antena patch a partir de 2,5 horas, recomendação do IBGE de 4 horas e ocupação típica de 4 a 8 horas.">
+      <line x1="60" y1="210" x2="920" y2="210" class="d-line"/>
+      <g class="d-t s" text-anchor="middle">
+        <text x="60" y="230">0 h</text><text x="167.5" y="230">1 h</text><text x="275" y="230">2 h</text><text x="382.5" y="230">3 h</text><text x="490" y="230">4 h</text><text x="597.5" y="230">5 h</text><text x="705" y="230">6 h</text><text x="812.5" y="230">7 h</text><text x="920" y="230">8 h</text>
+      </g>
+      <g class="d-grid"><line x1="167.5" y1="20" x2="167.5" y2="210"/><line x1="275" y1="20" x2="275" y2="210"/><line x1="382.5" y1="20" x2="382.5" y2="210"/><line x1="490" y1="20" x2="490" y2="210"/><line x1="597.5" y1="20" x2="597.5" y2="210"/><line x1="705" y1="20" x2="705" y2="210"/><line x1="812.5" y1="20" x2="812.5" y2="210"/></g>
+      <rect x="140.6" y="26" width="779.4" height="26" rx="4" class="d-box2"/><circle cx="140.6" cy="39" r="6" class="d-mk"/>
+      <text x="152" y="44" class="d-t">CSRS-PPP v3 com PPP-AR: ~45 min possível [F16c]</text>
+      <rect x="167.5" y="64" width="752.5" height="26" rx="4" class="d-ser"/><circle cx="167.5" cy="77" r="6" class="d-mk ser"/>
+      <text x="180" y="82" class="d-t">PPK estático, linha curta: 1 h → poucos cm H, fix 80 % [F20]</text>
+      <rect x="328.75" y="102" width="591.25" height="26" rx="4" class="d-acc"/><circle cx="328.75" cy="115" r="6" class="d-mk acc"/>
+      <text x="340" y="120" class="d-t">PPP, ZED-F9P + ANN-MB: ≥ 2,5 h → poucos cm [F20]</text>
+      <rect x="490" y="140" width="430" height="26" rx="4" class="d-hot"/><circle cx="490" cy="153" r="6" class="d-mk hot"/>
+      <text x="502" y="158" class="d-t b">IBGE-PPP: ≥ 4 h recomendadas [F15]</text>
+      <rect x="490" y="178" width="430" height="20" rx="4" class="d-box" style="stroke-dasharray:4 3"/>
+      <text x="502" y="192" class="d-t s">ocupação típica suposta da LuftPlan: 4–8 h (Q12)</text>
+    </svg>
+    </div>
+    <figcaption><b>Cada barra começa na duração a partir da qual a fonte indica o resultado.</b> Para georreferenciar a base, planejar ≥ 4 h. A 1 Hz, decimar para 15–30 s ao enviar ao IBGE-PPP (limite de 20 MB [F15]).</figcaption>
+  </figure>
+
+  <h3>Serviços comparados</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Critério</th><th>IBGE-PPP</th><th>CSRS-PPP (NRCan)</th><th>PPK RTKLIB-EX + RBMC</th></tr></thead>
+    <tbody>
+      <tr><td>Entrada</td><td>RINEX ≤ 2.11 [F15b] <span class="tag s">trecho de busca</span>; máx. 20 MB</td><td>RINEX 2/3; &lt; 100 MB, &lt; 6 dias; conta</td><td>RINEX rover + RBMC + efemérides</td></tr>
+      <tr><td>Constelações</td><td>GPS + GLONASS</td><td>GPS + GLONASS; Galileo PPP-AR só E1/E5a (v5, mai/2025) [F16b] → E5b do F9P provavelmente não usado <span class="tag h">HIPÓTESE</span></td><td>As comuns a base e rover</td></tr>
+      <tr><td>Duração</td><td>≥ 4 h recomendadas</td><td>Sem mínimo; PPP-AR ~45 min (v3)</td><td>Tabela 3.2 IBGE 2008 [F22] <span class="tag">não verificado</span>; F9P: 1 h → poucos cm</td></tr>
+      <tr><td>Saída</td><td><b>SIRGAS2000 2000,4 automático</b> + ITRF/IGS20</td><td>ITRF2020 na época</td><td>Referencial da coordenada da RBMC</td></tr>
+      <tr><td>Compatível com entregas</td><td><span class="st good">Direto</span></td><td><span class="st warn">Exige transformação</span></td><td><span class="st good">Direto</span></td></tr>
+      <tr><td>Lock-in</td><td>Baixo (API pública [F15c])</td><td>Baixo</td><td><b>Zero</b></td></tr>
+    </tbody></table></div>
+
+  <div class="cols">
+    <div class="card"><h4>(a) Georreferenciar a base</h4><p>≥ 4 h a 1 Hz → IBGE-PPP; CSRS-PPP como controle; PPK se houver RBMC a ≤ 20–30 km <span class="tag h">HIPÓTESE</span>. Precisão absoluta "poucos cm" H [F20]; vertical pior. Pontos RTK = erro da base + 1 cm + 1 ppm (spec) [F3].</p></div>
+    <div class="card"><h4>(b) Drone e SLAM</h4><p>Base grava RINEX a 1 Hz durante todo o voo + margem de ~10 min <span class="tag h">HIPÓTESE</span>. Alternativa: RINEX 3 de 1 s da RBMC em blocos de 15 min [F14] (linha longa fora de Curitiba/Guarapuava).</p></div>
+    <div class="card"><h4>Dados RBMC</h4><p>15 s diários: <code>geoftp…/rbmc/dados/ANO/DIA/</code>. 1 s: <code>…/dados_RINEX3_1s/ANO/DIA/HORA/</code> desde 2020 [F14]. Coordenadas: relatórios descritivos [F23]. Perto: UFPR e PRGU (status a confirmar).</p></div>
+    <div class="card"><h4>Validação</h4><p>Vértice SAT/BDG conhecido; três soluções independentes; comparação com RTK NTRIP; repetibilidade em dois dias. Critérios propostos: |ΔH| ≤ 3 cm, |ΔV| ≤ 6 cm, repetibilidade ≤ 2 cm H <span class="tag h">HIPÓTESE</span>.</p></div>
+  </div>
+</section>
+
+<section id="ntrip">
+  <span class="sec-num">07</span>
+  <h2>NTRIP e limitações dos apps</h2>
+  <div class="cols">
+    <div class="card"><h4>RBMC-IP</h4><ul class="tight">
+      <li>Caster <code>170.84.40.52:2101</code> ou <code>gps-ntrip.ibge.gov.br:2101</code> [F24] <span class="tag s">trecho de busca</span>.</li>
+      <li>Mountpoints <code>XXXX0</code> = RTCM 3.2; <code>XXXX1</code> = RTCM 3.0. Conferir a sourcetable.</li>
+      <li>Erro cresce ~1 ppm; manter &lt; 20–30 km <span class="tag h">HIPÓTESE</span>.</li>
+      <li>GGA provavelmente dispensável (base única) <span class="tag h">HIPÓTESE</span>.</li></ul></div>
+    <div class="card"><h4>Perdas e redundância</h4><ul class="tight">
+      <li>Fix se mantém até a idade da correção passar de <code>CFG-NAVSPG-CONSTR_DGNSSTO</code> (padrão <span class="tag">não verificado</span>).</li>
+      <li>Segundo mountpoint; base local (Fase 7).</li>
+      <li><b>Sempre gravar RAW</b> para PPK de contingência.</li>
+      <li>Tap passivo da linha RTCM → gravar a correção recebida (T19).</li></ul></div>
+    <div class="card"><h4>SW Maps e GNSS Master</h4><ul class="tight">
+      <li>"Log to file" grava tudo; sem RAWX/SFRBX o arquivo sai só NMEA e o RTKLIB falha [F18].</li>
+      <li>iOS só BLE [F12]; SW Maps é a opção gratuita citada no iOS [F19].</li>
+      <li>GNSS Master: só Android; NTRIP v1/v2, saída TCP/NTRIP server [F18b]. Gravação RAW <span class="tag">não verificado</span>.</li></ul></div>
+  </div>
+</section>
+
+<section id="matriz">
+  <span class="sec-num">08</span>
+  <h2>Matrizes comparativas</h2>
+  <h3>Arquiteturas de gravação</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Critério</th><th>A1 · S3 gravador na UART1 (recomendada)</th><th>A2 · S3 substitui a ponte</th><th>B · Firmware aberto existente</th><th>C · RTKBase/str2str</th><th>D · Sem gravador (RBMC + SW Maps)</th></tr></thead>
+    <tbody>
+      <tr><td>Custo de hardware</td><td><span class="st good">~0</span></td><td><span class="st good">~0</span></td><td><span class="st good">~0</span></td><td><span class="st warn">Pi + caixa + energia</span></td><td><span class="st good">0</span></td></tr>
+      <tr><td>Esforço</td><td><span class="st warn">Médio</span> firmware pequeno</td><td><span class="st crit">Alto</span> BLE+SD+Wi-Fi</td><td><span class="st crit">Alto</span> nada pronto</td><td><span class="st good">Baixo</span> imagem pronta</td><td><span class="st good">Mínimo</span></td></tr>
+      <tr><td>Robustez em campo</td><td><span class="st good">Boa</span> com buffer e sync</td><td><span class="st warn">Média</span></td><td><span class="st warn">Varia</span></td><td><span class="st good">Muito boa</span>, mais consumo</td><td><span class="st crit">Fraca</span> p/ base</td></tr>
+      <tr><td>Risco de corrupção</td><td><span class="st warn">Médio, mitigável</span></td><td><span class="st warn">Médio</span></td><td><span class="st warn">Varia</span></td><td><span class="st warn">Médio</span></td><td><span class="st good">Baixo</span></td></tr>
+      <tr><td>RTC / tempo</td><td>Não precisa</td><td>Não precisa</td><td>—</td><td>Precisa de hora certa [F10]</td><td>Não precisa</td></tr>
+      <tr><td>Impacto nos apps</td><td><span class="st good">Nenhum</span></td><td><span class="st crit">Android → BLE</span></td><td><span class="st warn">Depende</span></td><td><span class="st good">Nenhum</span></td><td><span class="st warn">Celular preso à base</span></td></tr>
+      <tr><td>Lock-in</td><td>Nenhum</td><td>Baixo</td><td>Baixo</td><td>Nenhum</td><td>Médio (app fechado)</td></tr>
+      <tr><td>Melhor uso</td><td><b>Base em obra</b></td><td>—</td><td>Referência de código</td><td>Base fixa, caster local</td><td>Teste rápido, rover</td></tr>
+    </tbody></table></div>
+
+  <h3>Firmwares abertos levantados (opção B)</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Projeto</th><th>Licença</th><th>Último commit</th><th>Alvo</th><th>SD</th><th>BT</th><th>Nota</th></tr></thead>
+    <tbody>
+      <tr><td><code>nebkat/esp32-xbee</code> v0.5.4 [F9]</td><td>GPL-3.0</td><td>2023-01-16</td><td>ESP32 clássico</td><td>Não</td><td>Desligado</td><td>Caster/cliente/servidor NTRIP e web; parado desde 2023</td></tr>
+      <tr><td><code>SparkFun RTK Everywhere</code> v3.4 [F12]</td><td>MIT</td><td>2026-09-27</td><td>ESP32 clássico</td><td>Sim</td><td>SPP + BLE</td><td>Ativo e completo, mas amarrado ao hardware SparkFun</td></tr>
+      <tr><td><code>jancelin/RoverGNSS_RTK_BT_esp32_f9p</code></td><td>sem licença</td><td>2024-09-18</td><td>ESP32</td><td>Não</td><td>SPP</td><td>"experimental code"</td></tr>
+      <tr><td><code>HamishB/uBlox_PPP_logger</code></td><td>GPL-3.0</td><td>2024-07-29</td><td>Feather M0</td><td>Sim</td><td>Não</td><td>Gravador UBX para PPP</td></tr>
+      <tr><td><code>PaulZC/F9P_RAWX_Logger</code> · <code>Eric-FR/F9x_RAWX_Logger</code></td><td>sem arquivo</td><td>2020 · 2024</td><td>Feather M0</td><td>Sim</td><td>Não</td><td>Referências históricas</td></tr>
+      <tr><td><code>hvandermarel/ubxlogger</code></td><td>Apache-2.0</td><td>2025-12-04</td><td>OpenWrt/SBC</td><td>Sim</td><td>—</td><td>Alternativa à opção C</td></tr>
+    </tbody></table></div>
+  <p class="prose"><b>Conclusão:</b> nenhum projeto atende ao mesmo tempo ESP32-S3, SD e ponte para o RTK2B. O caminho é firmware próprio pequeno, reaproveitando ideias do SparkFun (MIT).</p>
+
+  <h3>Métodos de pós-processamento</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Critério</th><th>IBGE-PPP</th><th>CSRS-PPP</th><th>PPK RTKLIB-EX + RBMC</th><th>RTK NTRIP (referência)</th></tr></thead>
+    <tbody>
+      <tr><td>Esforço</td><td><span class="st good">Baixo</span></td><td><span class="st warn">Baixo + transformação</span></td><td><span class="st warn">Médio</span></td><td><span class="st good">Baixo</span></td></tr>
+      <tr><td>Robustez</td><td><span class="st good">Alta</span></td><td><span class="st good">Alta</span></td><td><span class="st warn">Média</span></td><td><span class="st warn">Depende da internet</span></td></tr>
+      <tr><td>Precisão (F9P + patch)</td><td>Poucos cm H, 2,5–4 h</td><td>Idem</td><td>Poucos cm H, 1 h, linha curta</td><td>1 cm + 1 ppm (spec)</td></tr>
+      <tr><td>SIRGAS2000 2000,4</td><td><span class="st good">Direta</span></td><td><span class="st warn">Indireta</span></td><td><span class="st good">Direta</span></td><td><span class="st good">Direta</span></td></tr>
+      <tr><td>Risco</td><td>RINEX 2.11 + 20 MB</td><td>Galileo E5b não usado</td><td>GLONASS entre marcas; linha longa</td><td>Sinal celular</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="arquitetura">
+  <span class="sec-num">09</span>
+  <h2>Configuração do receptor (perfil <code>base_logger_v1.cfg</code>)</h2>
+  <p>✔ = chave conferida no Integration Manual R13 [F2]. As demais existem no banco de chaves do pyubx2 [F11]; confirmar no receptor com <code>CFG-VALGET</code> (NAK = não suportada). Aplicar primeiro só em RAM.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Chave</th><th>Valor</th><th>Motivo</th><th>Conf.</th></tr></thead>
+    <tbody>
+      <tr><td><code>CFG-UART1-BAUDRATE</code></td><td class="num">230400</td><td>12 % de carga a 1 Hz</td><td>✔</td></tr>
+      <tr><td><code>CFG-UART1OUTPROT-UBX</code></td><td class="num">1</td><td>—</td><td>✔</td></tr>
+      <tr><td><code>CFG-UART1OUTPROT-NMEA</code></td><td class="num">0</td><td>Libera banda (igual ao RTKBase)</td><td>✔</td></tr>
+      <tr><td><code>CFG-UART1OUTPROT-RTCM3X</code></td><td class="num">0 (Fase 7: 1)</td><td>—</td><td>✔</td></tr>
+      <tr><td><code>CFG-UART1INPROT-UBX</code></td><td class="num">1</td><td>S3 pode enviar configuração</td><td>✔</td></tr>
+      <tr><td><code>CFG-RATE-MEAS</code> / <code>CFG-RATE-NAV</code></td><td class="num">1000 ms / 1</td><td>1 Hz na base</td><td>[F11]</td></tr>
+      <tr class="rec"><td><code>CFG-MSGOUT-UBX_RXM_RAWX_UART1</code></td><td class="num">1</td><td>Observações</td><td>[F11] [F10]</td></tr>
+      <tr class="rec"><td><code>CFG-MSGOUT-UBX_RXM_SFRBX_UART1</code></td><td class="num">1</td><td>Efemérides; RTKLIB falha sem SFRBX [F18]</td><td>[F11] [F10]</td></tr>
+      <tr><td><code>CFG-MSGOUT-UBX_NAV_PVT_UART1</code></td><td class="num">1</td><td>Tempo para nomes, estado</td><td>[F11] [F10]</td></tr>
+      <tr><td><code>CFG-MSGOUT-UBX_MON_COMMS_UART1</code></td><td class="num">10</td><td>Uso do buffer TX</td><td>[F11]</td></tr>
+      <tr><td><code>CFG-MSGOUT-UBX_NAV_SAT_UART1</code></td><td class="num">10 (opc.)</td><td>Diagnóstico de céu</td><td>[F11]</td></tr>
+      <tr><td><code>CFG-NAVSPG-DYNMODEL</code></td><td class="num">2</td><td>Stationary; afeta só a solução <span class="tag h">HIPÓTESE</span></td><td>[F11]</td></tr>
+      <tr><td><code>CFG-SIGNAL-SBAS_ENA</code></td><td class="num">0 (opc.)</td><td>Sem uso em PPP/PPK</td><td>[F11]</td></tr>
+      <tr><td>UART2 / USB</td><td>sem alteração</td><td>Preserva a ponte</td><td>—</td></tr>
+    </tbody></table></div>
+  <div class="note info"><b>Fase 7 (RTCM local):</b> <code>CFG-TMODE-MODE</code>, <code>SVIN_MIN_DUR</code>, <code>SVIN_ACC_LIMIT</code> (ou FIXED com <code>POS_TYPE</code>, <code>ECEF_*</code>/<code>LAT/LON/HEIGHT</code> + <code>_HP</code>); <code>CFG-MSGOUT-RTCM_3X_TYPE1005/1074/1084/1094/1124/1230_UART1</code>; ID da estação <code>CFG-RTCM-DF003_OUT</code>. Todas ✔ [F2].</div>
+  <div class="tw"><table>
+    <thead><tr><th>Fluxo e armazenamento (N≈60, 1 Hz)</th><th>Valor</th></tr></thead>
+    <tbody>
+      <tr><td>Entrada na UART1</td><td>~2,8 kB/s RAWX+SFRBX + ~0,1 kB/s NAV-PVT</td></tr>
+      <tr><td>Arquivo</td><td>~10 MB/h → ~240 MB/dia → 32 GB ≈ 130 dias</td></tr>
+      <tr><td>RINEX 3.04 de 1 s</td><td>Maior que o UBX <span class="tag h">HIPÓTESE</span>; decimar para 15–30 s no PPP</td></tr>
+      <tr><td>RTCM MSM4 (Fase 7)</td><td>~0,7 kB/s para 4 constelações (estimativa; medir)</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="plano">
+  <span class="sec-num">10</span>
+  <h2>Plano de execução</h2>
+  <div class="note"><b>Regra geral:</b> nada destrutivo sem aprovação explícita (reflash, formatação, gravação em Flash/BBR do receptor). Antes de qualquer passo assim: backup + rollback descritos. Rollback do receptor: <code>ubxload</code> do backup (RAM) e conferência com <code>ubxcompare</code>.</div>
+  <div class="steps">
+    <div class="step"><div class="n">F0<small>inventário</small></div><div><h4>Inventário e backup, sem alterar nada</h4><p>Responder Q1–Q12; instalar <code>pyubx2 pygnssutils pyubxutils pygpsclient</code> e RTKLIB-EX v2.5.1; <code>ubxsave</code> da configuração completa do ZED pelo USB; anotar a ponte BT (nome, PIN, baud) sem regravar; criar repositório git <code>luftplan-gnss</code>.</p><div class="tests"><span class="tag">T01</span><span class="tag">T02</span></div></div></div>
+    <div class="step"><div class="n">F1<small>opcional</small></div><div><h4>Validar a cadeia com o SW Maps</h4><p>RAWX+SFRBX na UART2 só em RAM (HPG ≥ 1.30); gravar 1 h com "Log to file"; converter; desligar e religar para reverter e conferir com <code>ubxcompare</code>.</p><div class="tests"><span class="tag">T09</span></div></div></div>
+    <div class="step"><div class="n">F2<small>bancada</small></div><div><h4>Gravador em bancada, sem o receptor</h4><p>Benchmark do SD com <code>perf_benchmark</code> (formata o cartão: usar cartão dedicado, com aprovação); firmware mínimo UART → ring → SD; CSV de saúde e <code>/status</code>; cortes de energia.</p><div class="tests"><span class="tag">T05</span><span class="tag">T06</span><span class="tag">T07</span><span class="tag">T08</span><span class="tag">T13</span></div></div></div>
+    <div class="step"><div class="n">F3<small>receptor</small></div><div><h4>Configuração do receptor para o gravador</h4><p>Aplicar <code>base_logger_v1.cfg</code> em RAM pelo USB; validar a UART1 num conversor USB-serial 3,3 V com <code>gnssstreamer</code>; persistir em BBR+Flash só com aprovação.</p><div class="tests"><span class="tag">T03</span><span class="tag">T03b</span><span class="tag">T04</span></div></div></div>
+    <div class="step"><div class="n">F4<small>integração</small></div><div><h4>Receptor + gravador</h4><p>Fiação ZED TX1 → S3 RX (opcional S3 TX → RX1), IOREF = 3,3 V, GND comum; 24 h em céu aberto com a ponte em uso normal; conferir convivência com SW Maps + RBMC-IP.</p><div class="tests"><span class="tag">T10</span><span class="tag">T11</span><span class="tag">T12</span></div></div></div>
+    <div class="step"><div class="n">F5<small>campo</small></div><div><h4>Validação geodésica</h4><p>6 h num vértice SIRGAS2000 conhecido com ficha completa; processar IBGE-PPP, CSRS-PPP e PPK (UFPR); comparar com RTK NTRIP; repetir em outro dia.</p><div class="tests"><span class="tag">T14</span><span class="tag">T15</span><span class="tag">T17</span></div></div></div>
+    <div class="step"><div class="n">F6<small>escritório</small></div><div><h4>Pipeline automatizado em Python</h4><p><code>ubx2rinex.py</code> (concatena, convbin com metadados da ficha, decima, compacta); download RBMC por data e estação; relatório ΔE/ΔN/ΔU com pandas e pyproj.</p><div class="tests"><span class="tag">T09</span></div></div></div>
+    <div class="step"><div class="n">F7<small>opcional</small></div><div><h4>RTCM local sem internet</h4><p>RTCM na UART1 junto com UBX; caster/TCP no softAP do S3 demultiplexando frames RTCM (0xD3); comparar com RTKBase num Pi.</p><div class="tests"><span class="tag">T20</span><span class="tag">T21</span></div></div></div>
+  </div>
+</section>
+
+<section id="testes">
+  <span class="sec-num">11</span>
+  <h2>Testes individuais (uma variável por teste)</h2>
+  <div class="tw"><table>
+    <thead><tr><th>ID</th><th>Objetivo</th><th>Variável</th><th>Procedimento</th><th>Critério de aceite</th></tr></thead>
+    <tbody>
+      <tr><td>T01</td><td>Inventário de firmware</td><td>—</td><td>Ler <code>UBX-MON-VER</code></td><td>Versão registrada; se &lt; HPG 1.30, pular a F1</td></tr>
+      <tr><td>T02</td><td>Backup e restauração idênticos</td><td>Configuração</td><td><code>ubxsave</code> → <code>ubxload</code> → <code>ubxcompare</code></td><td>0 diferenças</td></tr>
+      <tr><td>T03</td><td>Configuração em RAM aplicada</td><td>Arquivo .cfg</td><td><code>CFG-VALGET</code> de cada chave</td><td>100 % dos valores esperados; nenhum NAK</td></tr>
+      <tr><td>T03b</td><td>Persistência (após aprovação)</td><td>Camada Flash</td><td>Desligar e religar; repetir T03</td><td>Idem</td></tr>
+      <tr><td>T04</td><td>Taxa e banda na UART1</td><td>Baud 230400</td><td>1 h com <code>gnssstreamer</code>; <code>MON-COMMS</code></td><td>3600 ± 1 de cada; 0 erros de checksum; pico TX &lt; 50 % <span class="tag h">HIPÓTESE</span></td></tr>
+      <tr><td>T05</td><td>Desempenho do SD</td><td>SDSPI × SDMMC</td><td><code>perf_benchmark</code> [F8]</td><td>≥ 100 kB/s sustentado <span class="tag h">HIPÓTESE</span></td></tr>
+      <tr><td>T06</td><td>Pior latência de escrita</td><td>24 h</td><td>Latência máx. de <code>write</code> no CSV</td><td>&lt; tempo coberto pelo buffer, com margem 5×</td></tr>
+      <tr><td>T07</td><td>Gravação bit-exata</td><td>Fonte simulada</td><td>PC reproduz .ubx real a 230400 por 6 h</td><td>SHA-256 igual; 0 overflow</td></tr>
+      <tr><td>T08</td><td>Queda de energia</td><td>Cortes</td><td>20 cortes aleatórios</td><td>Cartão monta 20/20; perda ≤ 10 s + buffer</td></tr>
+      <tr><td>T09</td><td>Conversão para RINEX</td><td>Arquivo</td><td><code>convbin</code></td><td>.obs e .nav; épocas = duração × taxa (± 0,1 %)</td></tr>
+      <tr><td>T10</td><td>24 h com o receptor</td><td>Tempo</td><td>Fase 4</td><td>24 arquivos; sem overflow; T09 ok</td></tr>
+      <tr><td>T11</td><td>Nome por tempo GNSS</td><td>Partida a frio</td><td>Ligar sem céu e liberar</td><td>Arquivo renomeado; UTC ± 1 s</td></tr>
+      <tr><td>T12</td><td>Convivência com a ponte BT</td><td>Gravador on/off</td><td>Tempo até fix RTK e estabilidade (Android e iOS)</td><td>Tempo até fix ± 20 %; 0 desconexões em 1 h</td></tr>
+      <tr><td>T13</td><td>Wi-Fi sem afetar a gravação</td><td>softAP</td><td>Baixar arquivos durante a gravação</td><td>T07 continua bit-exato</td></tr>
+      <tr><td>T14</td><td>Exatidão em vértice</td><td>Método</td><td>IBGE, CSRS, PPK, RTK no vértice</td><td>|ΔH| ≤ 3 cm, |ΔV| ≤ 6 cm (ajustar com Q9)</td></tr>
+      <tr><td>T15</td><td>Efeito da antena e do Galileo</td><td>Nome da antena / Galileo</td><td>Reprocessar no CSRS</td><td>Diferença registrada; decide sobre calibração</td></tr>
+      <tr><td>T16</td><td>RAW independe do TMODE</td><td>Modo da base</td><td>1 h survey-in × 1 h fixo</td><td>RAWX completa nos dois</td></tr>
+      <tr><td>T17</td><td>Repetibilidade e translação Δ</td><td>Dia</td><td>Duas sessões; aplicar Δ</td><td>≤ 2 cm H; pontos dentro de T14</td></tr>
+      <tr><td>T18</td><td>(Só A2) SW Maps Android por BLE</td><td>Protocolo</td><td>2 h com NTRIP</td><td>0 desconexões; RTCM chega</td></tr>
+      <tr><td>T19</td><td>Tap passivo do RTCM</td><td>Ligação do tap</td><td>RTK com e sem tap; converter RTCM</td><td>Sem degradação; RINEX da RBMC gerado</td></tr>
+      <tr><td>T20</td><td>Stream misto UBX+RTCM</td><td>Protocolos</td><td><code>convbin -r ubx</code> no misto</td><td>RINEX idêntico ao só-UBX</td></tr>
+      <tr><td>T21</td><td>Caster local no S3</td><td>Clientes 1 → 3</td><td>Rover no softAP</td><td>Idade &lt; 2 s; fix ≥ 95 % a 30 m</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="fluxo">
+  <span class="sec-num">12</span>
+  <h2>Comandos de pós-processamento</h2>
+  <p>Opções conferidas no código do RTKLIB-EX 2.5.1 [F1]. <code>-hd</code> é h/e/n. Em <code>-ha</code> e <code>-hr</code>, o parser ignora campos vazios: sempre preencher o número antes do tipo. <code>-y</code> pode repetir.</p>
+<pre><code># Concatenar a sessão (UBX é stream)
+cat LPB1_20261004_1[0-5]00.ubx &gt; LPB1_20261004_sessao.ubx   # Windows: copy /b a.ubx+b.ubx saida.ubx
+
+# RINEX 3.04 multi-GNSS (CSRS-PPP, PPK, arquivo)
+convbin -r ubx -v 3.04 -od -os -oi -ot -ol \
+  -hm LPB1 -hn 0001 -ho "Operador/LuftPlan" \
+  -hr "SN123/U-BLOX ZED-F9P/HPG 1.32" -ha "0001/ANTTYPE_IGS_20CHARS" \
+  -hd "1.5230/0/0" -d rinex3 LPB1_20261004_sessao.ubx
+
+# RINEX 2.11 GPS+GLONASS, 30 s (IBGE-PPP: ≤ 2.11 e ≤ 20 MB)
+convbin -r ubx -v 2.11 -ti 30 -y E -y C -y J -y S -y I -od -os -oi -ot -ol \
+  -hm LPB1 -hn 0001 -ho "Operador/LuftPlan" \
+  -hr "SN123/U-BLOX ZED-F9P/HPG 1.32" -ha "0001/ANTTYPE_IGS_20CHARS" -hd "1.5230/0/0" \
+  -d rinex2 LPB1_20261004_sessao.ubx</code></pre>
+  <div class="cols">
+    <div class="card"><h4>IBGE-PPP</h4><p>Enviar .zip do RINEX 2.11 (web ou API [F15c]); informar antena e altura; ler SIRGAS2000 (2000,4) e ITRF/IGS20. Altitude normal via hgeoHNOR2020; UTM 22S = EPSG:31982.</p></div>
+    <div class="card"><h4>CSRS-PPP</h4><p>Modo estático, saída ITRF; comparar ITRF × ITRF com o IBGE. Parâmetros IGS20 → SIRGAS2000 citados na busca (Tx −0,48 cm…) <b>não usar sem conferir</b> no IBGE.</p></div>
+  </div>
+<pre><code># PPK estático (rnx2rtkp) — ponto de partida, validar em T14
+pos1-posmode    =static
+pos1-frequency  =l1+l2
+pos1-elmask     =15
+pos1-navsys     =13            # gps + glo + gal
+pos1-ionoopt    =brdc          # linha longa: testar est-stec
+pos1-tropopt    =saas          # linha longa: est-ztd
+pos2-armode     =continuous
+pos2-gloarmode  =off           # marcas diferentes; testar autocal
+ant2-postype    =xyz           # coordenada SIRGAS2000 do relatório da RBMC
+ant2-anttype    =&lt;antena IGS da RBMC&gt;
+file-rcvantfile =igs20.atx
+out-height      =ellipsoidal
+
+rnx2rtkp -k ppk_static.conf -o saida.pos rover.obs base_rbmc.obs rover.nav base.nav</code></pre>
+</section>
+
+<section id="riscos">
+  <span class="sec-num">13</span>
+  <h2>Riscos e mitigação</h2>
+  <p>Probabilidade conforme o relatório; o nível de impacto foi derivado da descrição de cada risco. Passe o mouse ou foque um risco para ver a mitigação.</p>
+  <div class="riskgrid" role="table" aria-label="Matriz de riscos por probabilidade e impacto">
+    <div class="ax"></div><div class="ax">Impacto baixo</div><div class="ax">Impacto médio</div><div class="ax">Impacto alto</div>
+    <div class="ax">Prob. alta</div>
+      <div class="cell lv2"></div>
+      <div class="cell lv2"><span class="rk" tabindex="0" data-tip="R8 · Galileo/BeiDou pouco aproveitados em PPP → convergência mais lenta. Mitigação: sessões ≥ 4 h; PPK com GAL quando a RBMC tiver E5b.">R8</span></div>
+      <div class="cell lv3"><span class="rk" tabindex="0" data-tip="R6 · Antena sem calibração ANTEX → viés vertical de cm (HIPÓTESE). Mitigação: registrar no RINEX; avaliar em T15.">R6</span><span class="rk" tabindex="0" data-tip="R9 · Survey-in desloca todo o RTK (erro de metro). Mitigação: translação Δ ou modo fixo com coordenada PPP (T17).">R9</span></div>
+    <div class="ax">Prob. média</div>
+      <div class="cell lv1"><span class="rk" tabindex="0" data-tip="R7 · IBGE-PPP rejeita o arquivo. Mitigação: RINEX 2.11, 30 s, só GPS+GLO, compactar (T09).">R7</span></div>
+      <div class="cell lv2"><span class="rk" tabindex="0" data-tip="R5 · Pinos do S3 conflitantes (PSRAM octal, strapping). Mitigação: evitar GPIO35–37, 0, 3, 45, 46.">R5</span></div>
+      <div class="cell lv3"><span class="rk" tabindex="0" data-tip="R1 · Corrupção do SD por queda de energia. Mitigação: rotação horária, f_sync 10 s, cartão high endurance, supervisor de tensão (T08).">R1</span><span class="rk" tabindex="0" data-tip="R4 · IOREF desligado → comunicação falha ou dano. Mitigação: IOREF = 3,3 V, medir antes de ligar.">R4</span><span class="rk" tabindex="0" data-tip="R11 · GLONASS AR entre marcas diferentes no PPK → fix errado. Mitigação: gloarmode off/autocal; comparar com PPP (T14).">R11</span><span class="rk" tabindex="0" data-tip="R12 · Altura ou ponto de medição errado. Mitigação: ficha com medida dupla e foto; ARP definido (T14).">R12</span></div>
+    <div class="ax">Prob. baixa</div>
+      <div class="cell lv1"><span class="rk" tabindex="0" data-tip="R13 · Dependência de serviços online. Mitigação: PPK com RTKLIB é 100 % local.">R13</span><span class="rk" tabindex="0" data-tip="R14 · Licença GPL ao reaproveitar o esp32-xbee. Mitigação: uso interno ou reescrita.">R14</span></div>
+      <div class="cell lv1"><span class="rk" tabindex="0" data-tip="R2 · Perda de bytes na UART. Mitigação: ring 64–256 KB, RX prioritária, 230400 (T04, T07).">R2</span><span class="rk" tabindex="0" data-tip="R3 · Receptor descarta mensagens por banda. Mitigação: dimensionamento + MON-COMMS (T04).">R3</span></div>
+      <div class="cell lv2"><span class="rk" tabindex="0" data-tip="R10 · Configuração errada gravada em Flash. Mitigação: só RAM até validar; ubxsave/ubxload (T02, T03).">R10</span></div>
+  </div>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Risco</th><th>Mitigação</th><th>Teste</th></tr></thead>
+    <tbody>
+      <tr><td>R1</td><td>Corrupção do SD por queda de energia</td><td>Rotação horária, <code>f_sync</code> 10 s, cartão "high endurance", supervisor de tensão</td><td>T08</td></tr>
+      <tr><td>R2</td><td>Perda de bytes na UART</td><td>Ring 64–256 KB, RX prioritária, contadores, 230400</td><td>T04, T07</td></tr>
+      <tr><td>R3</td><td>Receptor descarta mensagens</td><td>Dimensionamento; <code>MON-COMMS</code></td><td>T04</td></tr>
+      <tr><td>R4</td><td>IOREF desligado</td><td>IOREF = 3,3 V; medir antes</td><td>F4</td></tr>
+      <tr><td>R5</td><td>Pinos do S3 conflitantes</td><td>Evitar 35–37, 0, 3, 45, 46 <span class="tag h">HIPÓTESE</span></td><td>F2</td></tr>
+      <tr><td>R6</td><td>Antena sem ANTEX</td><td>Registrar; avaliar; calibração fora do escopo</td><td>T15</td></tr>
+      <tr><td>R7</td><td>IBGE-PPP rejeita arquivo</td><td>RINEX 2.11, 30 s, GPS+GLO, compactar</td><td>T09</td></tr>
+      <tr><td>R8</td><td>Galileo/BeiDou pouco aproveitados</td><td>Sessões ≥ 4 h; PPK com GAL</td><td>T15</td></tr>
+      <tr><td>R9</td><td>Survey-in deslocando o RTK</td><td>Translação Δ ou modo fixo</td><td>T17</td></tr>
+      <tr><td>R10</td><td>Configuração errada em Flash</td><td>Só RAM até validar; backup</td><td>T02, T03</td></tr>
+      <tr><td>R11</td><td>GLONASS AR entre marcas</td><td><code>gloarmode</code> off/autocal</td><td>T14</td></tr>
+      <tr><td>R12</td><td>Altura da antena errada</td><td>Medida dupla, foto, ARP definido</td><td>T14</td></tr>
+      <tr><td>R13</td><td>Dependência de serviços online</td><td>PPK local como segundo caminho</td><td>—</td></tr>
+      <tr><td>R14</td><td>Licença GPL</td><td>Uso interno ou reescrita</td><td>—</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="fontes">
+  <span class="sec-num">14</span>
+  <h2>Fontes (acesso em 2026-10-04)</h2>
+  <ol class="src">
+    <li><b>F1</b>RTKLIB-EX v2.5.1, commit 81943c1 (2026-09-28), BSD-2: <code>convbin.c</code>, <code>options.c</code>, <code>ublox.c</code>. <a href="https://github.com/rtklibexplorer/RTKLIB">github.com/rtklibexplorer/RTKLIB</a></li>
+    <li><b>F2</b>u-blox, ZED-F9P Integration Manual UBX-18010802 R13 (30-ago-2023), cópia em <code>sparkfun/SparkFun_RTK_EVK</code>. <a href="https://content.u-blox.com/sites/default/files/ZED-F9P_IntegrationManual_UBX-18010802.pdf">original</a></li>
+    <li><b>F3</b>u-blox, ZED-F9P-02B Data Sheet UBX-21023276 R03 (24-mar-2023), HPG 1.13.</li>
+    <li><b>F4</b>u-blox, release notes HPG 1.51 (R01 01-nov-2024) e 1.50 <span class="tag s">trecho de busca</span>. <a href="https://content.u-blox.com/sites/default/files/documents/ZED-F9P-FW100HPG151_RN_UBXDOC-963802114-13110.pdf">PDF</a></li>
+    <li><b>F5</b>ArduSimple, guias simpleRTK2B Budget, V3 e Pro <span class="tag s">trecho de busca</span>. <a href="https://ardusimple.com/?p=2074">Budget</a> · <a href="https://ardusimple.com/simplertk2b-v3-hookup-guide">V3</a> · <a href="https://www.ardusimple.com/?p=36066">Pro</a></li>
+    <li><b>F6</b>ArduSimple, BT+BLE Bridge <span class="tag s">trecho de busca</span>. <a href="https://www.unmannedsystemstechnology.com/company/ardusimple/bluetooth-ble-bridge/">página</a></li>
+    <li><b>F7</b>ESP-IDF <code>bt-architecture/overview.rst</code> (tabela de capacidade Bluetooth), commit 4d59230 (2026-09-25).</li>
+    <li><b>F8</b>ESP-IDF: <code>soc_caps.h</code> do S3, <code>ffconf.h</code>, <code>Kconfig</code> do FATFS, <code>sdmmc_host.rst</code>, <code>sdspi_host.rst</code>, <code>uart.rst</code>, <code>coexist.rst</code>, <code>perf_benchmark</code>. <a href="https://github.com/espressif/esp-idf">github.com/espressif/esp-idf</a></li>
+    <li><b>F9</b>nebkat/esp32-xbee v0.5.4, commit 8fc008a (2023-01-16), GPL-3.0. <a href="https://github.com/nebkat/esp32-xbee">GitHub</a></li>
+    <li><b>F10</b>Stefal/RTKBase v2.7.0, commit 2ce7ce0 (2025-12-20), AGPL-3.0. <a href="https://github.com/Stefal/rtkbase">GitHub</a></li>
+    <li><b>F11</b>pyubx2 1.3.8 (2026-09-28), BSD-3: banco de chaves, estruturas RAWX/SFRBX, camadas do VALSET. <a href="https://github.com/semuconsulting/pyubx2">GitHub</a></li>
+    <li><b>F12</b>SparkFun RTK Everywhere v3.4, commit 4d84581 (2026-09-27), MIT; docs de Bluetooth/iOS. <a href="https://github.com/sparkfun/SparkFun_RTK_Everywhere_Firmware">GitHub</a></li>
+    <li><b>F13</b>pygnssutils 1.2.8, pyubxutils 1.0.6, PyGPSClient 1.7.7 (BSD-3). <a href="https://github.com/semuconsulting/pygnssutils">pygnssutils</a> · <a href="https://github.com/semuconsulting/PyGPSClient">PyGPSClient</a></li>
+    <li><b>F14</b>IBGE, RBMC e dados de 1 s <span class="tag s">trecho de busca</span>. <a href="https://geoftp.ibge.gov.br/informacoes_sobre_posicionamento_geodesico/rbmc/">geoftp</a> · <a href="https://www.ibge.gov.br/np_download/novoportal/geociencias/rbmc/Passo_a_passo_RINEX_1s.pdf">Passo a passo RINEX 1s</a></li>
+    <li><b>F15</b>IBGE, Manual do Usuário IBGE-PPP (jun/2023) <span class="tag s">trecho de busca</span>. <a href="https://biblioteca.ibge.gov.br/visualizacao/livros/liv101677.pdf">PDF</a> · F15b Emlid IBGE workflow · F15c <a href="https://servicodados.ibge.gov.br/api/docs/ppp?versao=1">API IBGE-PPP</a></li>
+    <li><b>F16</b>NRCan, CSRS-PPP: limites, antenas (v5 PCO), F16b atualizações (v5 mai/2025), F16c tutorial v3 <span class="tag s">trecho de busca</span>. <a href="https://webapp.csrs-scrs.nrcan-rncan.gc.ca/geod/tools-outils/ppp-update.php">atualizações</a></li>
+    <li><b>F17</b>IBGE, hgeoHNOR2020 <span class="tag s">trecho de busca</span>. <a href="https://www.ibge.gov.br/en/geosciences/digital-surface-models/digital-surface-models/31312-model-to-convert-altitudes-hgeohnor2020modeloconversaoaltitudesgeometricasgnss-datumverticalsgb.html">página</a></li>
+    <li><b>F18</b>Fórum SparkFun sobre UBX do SW Maps; F18b ArduSimple GNSS Master <span class="tag s">trecho de busca</span>. <a href="https://community.sparkfun.com/t/sw-maps-sparkfun-surveyor-invalid-ubx-log-files/45251">fórum</a></li>
+    <li><b>F19</b>rtkdata SW Maps; relatos sobre BLE no Android <span class="tag s">trecho de busca</span>. <a href="https://docs.rtkdata.com/integration-hub/ntrip-clients-and-field-software/sw-maps">página</a></li>
+    <li><b>F20</b>Wielgocka et al., Sensors 2021, 21(6), 1956, doi:10.3390/s21061956 <span class="tag s">trecho de busca</span>. <a href="https://elib.uni-stuttgart.de/bitstream/11682/12776/1/sensors-21-01956.pdf">PDF</a></li>
+    <li><b>F21</b>Sinais do BDS-3 (sem B2I) <span class="tag s">trecho de busca</span>. <a href="https://www.spirent.com/blogs/beidou-phase-3-signals">Spirent</a></li>
+    <li><b>F22</b>IBGE, Recomendações para Levantamentos Relativos Estáticos – GPS (2008). <a href="https://www.ibge.gov.br/geociencias/metodos-e-outros-documentos-de-referencia/outros-documentos-tecnicos-geo/16376-recomendacoes-para-levantamentos-relativos-estaticos-gps.html">página</a></li>
+    <li><b>F23</b>IBGE, relatórios descritivos RBMC. <a href="https://geoftp.ibge.gov.br/informacoes_sobre_posicionamento_geodesico/rbmc/relatorio/">geoftp</a></li>
+    <li><b>F24</b>Esteio, RBMC-IP em tempo real <span class="tag s">trecho de busca</span>. <a href="https://www.esteio.com.br/downloads/pdf/RBMC%20IP.pdf">PDF</a></li>
+  </ol>
+</section>
+
+<section id="fora" style="border-bottom:0">
+  <span class="sec-num">15</span>
+  <h2>Fora de escopo (só listado)</h2>
+  <ul class="tight prose">
+    <li>Calibração ou troca da antena por modelo com calibração IGS/NGS.</li>
+    <li>Rádio dedicado (LoRa/XBee 900 MHz) para RTCM de longo alcance.</li>
+    <li>USB OTG do S3 como host USB do ZED-F9P, em vez da UART1.</li>
+    <li>Segundo receptor como rover dedicado com gravação própria.</li>
+    <li>RTKBase permanente no escritório publicando num caster.</li>
+    <li>Atualização de firmware do ZED-F9P (destrutiva; exige aprovação e rollback próprio).</li>
+    <li>Integração do pipeline ao fluxo BIM/GIS (metadados ISO 19115).</li>
+    <li>Conformidade com a Norma Técnica do INCRA, se houver georreferenciamento rural.</li>
+  </ul>
+</section>
+<footer>Gerado a partir de <code>docs/plano-gravacao-raw-rtk2b.md</code> · LuftPlan · 2026-10-04</footer>
+</main>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+(function(){
+  // gráfico de vazão
+  var svg=document.getElementById('thr'); if(!svg) return;
+  var NS='http://www.w3.org/2000/svg';
+  var W=760,H=360,L=60,R=170,T=20,B=48,pw=W-L-R,ph=H-T-B,ymax=50;
+  var data=[{r:'1 Hz',v:2.76,lo:2.12,hi:3.40,mbh:9.9},{r:'2 Hz',v:4.70,lo:3.42,hi:5.98,mbh:16.9},{r:'5 Hz',v:10.53,lo:7.33,hi:13.73,mbh:37.9},{r:'10 Hz',v:20.25,lo:13.85,hi:26.65,mbh:72.9}];
+  var caps=[{b:'115200 bps',v:11.52},{b:'230400 bps',v:23.04,acc:true},{b:'460800 bps',v:46.08}];
+  function y(v){return T+ph-(v/ymax)*ph}
+  function el(n,a,txt){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;svg.appendChild(e);return e}
+  for(var g=0;g<=50;g+=10){el('line',{x1:L,x2:L+pw,y1:y(g),y2:y(g),'class':'d-grid'});el('text',{x:L-8,y:y(g)+4,'text-anchor':'end','class':'d-t s'},g)}
+  el('text',{x:14,y:T+ph/2,'class':'d-t s',transform:'rotate(-90 14 '+(T+ph/2)+')','text-anchor':'middle'},'kB/s');
+  var band=pw/data.length,bw=54;
+  data.forEach(function(d,i){
+    var cx=L+band*i+band/2,x0=cx-bw/2,yt=y(d.v),yb=y(0),r=4;
+    var p=el('path',{d:'M'+x0+','+yb+' V'+(yt+r)+' Q'+x0+','+yt+' '+(x0+r)+','+yt+' H'+(x0+bw-r)+' Q'+(x0+bw)+','+yt+' '+(x0+bw)+','+(yt+r)+' V'+yb+' Z','class':'d-bar',tabindex:'0'});
+    p.setAttribute('data-tip',d.r+' · N=60: '+d.v.toFixed(1).replace('.',',')+' kB/s ('+String(d.mbh).replace('.',',')+' MB/h). Faixa N=40–80: '+d.lo.toFixed(1).replace('.',',')+'–'+d.hi.toFixed(1).replace('.',',')+' kB/s.');
+    el('line',{x1:cx,x2:cx,y1:y(d.lo),y2:y(d.hi),'class':'d-line'});
+    el('line',{x1:cx-7,x2:cx+7,y1:y(d.lo),y2:y(d.lo),'class':'d-line'});
+    el('line',{x1:cx-7,x2:cx+7,y1:y(d.hi),y2:y(d.hi),'class':'d-line'});
+    el('text',{x:cx,y:H-B+20,'text-anchor':'middle','class':'d-t b'},d.r);
+    if(i===0||i===2) el('text',{x:cx,y:y(d.hi)-8,'text-anchor':'middle','class':'d-t s'},d.v.toFixed(1).replace('.',',')+' kB/s');
+  });
+  el('text',{x:L+band/2,y:H-B+36,'text-anchor':'middle','class':'d-t s'},'base (recomendado)');
+  caps.forEach(function(c){
+    el('line',{x1:L,x2:L+pw,y1:y(c.v),y2:y(c.v),'class':'d-line dash'+(c.acc?' acc':'')});
+    el('text',{x:L+pw+8,y:y(c.v)-2,'class':'d-t'+(c.acc?' a':'')},c.b);
+    el('text',{x:L+pw+8,y:y(c.v)+13,'class':'d-t s'},'≈ '+c.v.toFixed(1).replace('.',',')+' kB/s');
+  });
+  el('line',{x1:L,x2:L+pw,y1:y(0),y2:y(0),'class':'d-line'});
+})();
+(function(){
+  var tip=document.getElementById('tip');
+  function show(e,t){tip.textContent=t;tip.hidden=false;move(e)}
+  function move(e){var x=(e.clientX||0)+14,y=(e.clientY||0)+14;
+    if(e.type==='focusin'){var r=e.target.getBoundingClientRect();x=r.left;y=r.bottom+8}
+    var w=tip.offsetWidth,h=tip.offsetHeight;if(x+w>innerWidth-8)x=innerWidth-w-8;if(y+h>innerHeight-8)y=y-h-28;tip.style.left=x+'px';tip.style.top=y+'px'}
+  document.addEventListener('pointerover',function(e){var t=e.target.closest&&e.target.closest('[data-tip]');if(t)show(e,t.getAttribute('data-tip'))});
+  document.addEventListener('pointermove',function(e){if(!tip.hidden)move(e)});
+  document.addEventListener('pointerout',function(e){if(e.target.closest&&e.target.closest('[data-tip]'))tip.hidden=true});
+  document.addEventListener('focusin',function(e){var t=e.target.closest&&e.target.closest('[data-tip]');if(t)show(e,t.getAttribute('data-tip'))});
+  document.addEventListener('focusout',function(){tip.hidden=true});
+})();
+</script>
