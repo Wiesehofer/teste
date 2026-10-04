@@ -3,6 +3,7 @@
 **Cliente:** LuftPlan Soluções Integradas a Projetos (Curitiba/PR)
 **Data:** 2026-10-04 · **Versão:** 1.0 (análise e plano; nada foi executado no equipamento)
 **Formato:** handoff para outro agente/engenheiro
+**Documento complementar:** [`automacoes-esp32s3.md`](automacoes-esp32s3.md) traz automações de campo e escritório sobre a arquitetura A1.
 
 **Convenções:**
 - **[HIPÓTESE]**: inferência minha, ainda não comprovada por fonte. Cada uma tem um teste na seção 7.
